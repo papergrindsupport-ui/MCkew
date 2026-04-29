@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS secret_questions JSONB NOT NULL DEFAULT '[]'::jsonb;

@@ -1,0 +1,1169 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  @font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    src: url("https://fonts.gstatic.com/s/sora/v12/xMQOuFFYT72X5wkB_18qmnndmSdSnk-DKQJRBg.woff2")
+      format("woff2");
+  }
+}
+
+/*
+ * Tokens are kept as HSL strings (e.g. "345 72% 65%") so the runtime
+ * theme switcher can swap them via document.documentElement.style.setProperty.
+ * Tailwind utilities (bg-primary, text-foreground, …) are wired to hsl(var(--x)).
+ */
+
+@theme inline {
+  --font-sans: "Fredoka", sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card-pink: hsl(var(--card-pink));
+  --color-card-blue: hsl(var(--card-blue));
+  --color-card-green: hsl(var(--card-green));
+  --color-card-yellow: hsl(var(--card-yellow));
+  --color-card-purple: hsl(var(--card-purple));
+}
+
+:root {
+  --background: 14 100% 95%;
+  --foreground: 25 50% 18%;
+  --card: 0 0% 100%;
+  --card-foreground: 25 50% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 25 50% 18%;
+  --primary: 345 72% 65%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 345 55% 88%;
+  --secondary-foreground: 25 50% 18%;
+  --muted: 345 25% 91%;
+  --muted-foreground: 25 15% 45%;
+  --accent: 345 55% 83%;
+  --accent-foreground: 25 50% 18%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 20 30% 22%;
+  --input: 345 25% 88%;
+  --ring: 345 72% 65%;
+  --radius: 1rem;
+
+  --card-pink: 345 65% 87%;
+  --card-blue: 205 65% 87%;
+  --card-green: 140 55% 87%;
+  --card-yellow: 48 80% 85%;
+  --card-purple: 270 55% 88%;
+}
+
+.dark {
+  --background: 0 0% 3%;
+  --foreground: 0 0% 92%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 92%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 92%;
+  --primary: 345 72% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 345 30% 15%;
+  --secondary-foreground: 0 0% 92%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 345 35% 18%;
+  --accent-foreground: 0 0% 92%;
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 0 0% 92%;
+  --border: 0 0% 30%;
+  --input: 0 0% 15%;
+  --ring: 345 72% 58%;
+
+  --card-pink: 345 35% 15%;
+  --card-blue: 205 35% 15%;
+  --card-green: 140 30% 14%;
+  --card-yellow: 48 35% 14%;
+  --card-purple: 270 30% 16%;
+}
+
+::-moz-selection {
+  /* Code for Firefox */
+  color: hsl(var(--background));
+  background: hsl(var(--primary));
+}
+
+::selection {
+  color: hsl(var(--background));
+  background: hsl(var(--primary));
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes pop-in {
+  0% {
+    transform: scale(0.6) rotate(-12deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+@keyframes rainbow-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes drift {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate(20px, -15px) rotate(8deg);
+  }
+  66% {
+    transform: translate(-15px, 10px) rotate(-6deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+@keyframes shimmer-border {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+}
+@keyframes fade-in-soft {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ========== Loaders & Skeletons ========== */
+
+/* Spinning loader */
+.loader {
+  width: 40px;
+  aspect-ratio: 1;
+  position: relative;
+}
+.loader:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  --c: #0000, currentColor 1deg 120deg, #0000 121deg;
+  background:
+    conic-gradient(from 0deg, var(--c)) top right,
+    conic-gradient(from 120deg, var(--c)) bottom,
+    conic-gradient(from 240deg, var(--c)) top left;
+  background-size: 40px 40px;
+  background-repeat: no-repeat;
+  animation: loader-spin 2s infinite cubic-bezier(0.3, 1, 0, 1);
+}
+@keyframes loader-spin {
+  33% {
+    inset: -8px;
+    transform: rotate(0deg);
+  }
+  66% {
+    inset: -8px;
+    transform: rotate(180deg);
+  }
+  100% {
+    inset: 0;
+    transform: rotate(180deg);
+  }
+}
+
+/* Small loader variant */
+.loader-sm {
+  width: 20px;
+  aspect-ratio: 1;
+}
+.loader-sm:before {
+  background-size: 20px 20px;
+}
+
+/* Button loading state */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+}
+.btn-loading .btn-content {
+  visibility: hidden;
+}
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== Landing Subject Cards ========== */
+
+.landing-chem-stage {
+  background: hsl(var(--background));
+}
+
+.dark .landing-chem-stage {
+  background: #000;
+}
+
+.landing-bio-card {
+  width: 300px;
+  height: 300px;
+  border-radius: 30px;
+  background: linear-gradient(145deg, #ffffff, #eef7f0);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  box-shadow: 0 25px 50px rgb(0 0 0 / 0.15);
+}
+
+.landing-bio-card:hover {
+  transform: rotateX(6deg) rotateY(-6deg) scale(1.03);
+}
+
+.landing-bio-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 42px;
+  font-weight: 800;
+  color: #1b5e20;
+  letter-spacing: 3px;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.6s ease;
+  z-index: 1;
+}
+
+.landing-bio-card:hover .landing-bio-text {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.landing-bio-leaf {
+  position: absolute;
+  width: 160%;
+  height: 160%;
+  top: -30%;
+  left: -30%;
+  pointer-events: none;
+  opacity: 1;
+  transform: var(--bio-idle-transform);
+  transition:
+    transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 1s;
+}
+
+.landing-bio-card:hover .landing-bio-leaf {
+  opacity: 0.15;
+  transform: var(--bio-active-transform);
+}
+
+.landing-bio-leaf svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 12px rgb(0 0 0 / 0.15));
+}
+
+.landing-chem-card {
+  --landing-chem-surface: #ffffff;
+  --landing-chem-liquid: hsl(var(--primary));
+  --landing-chem-text-color: #ffffff;
+  width: 292px;
+  height: 320px;
+  border-radius: 30px;
+  background: var(--landing-chem-surface);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 15px 30px rgb(0 0 0 / 0.15);
+  transition: transform 0.25s ease;
+}
+
+.dark .landing-chem-card {
+  --landing-chem-surface: #000000;
+  --landing-chem-liquid: hsl(var(--primary));
+}
+
+.landing-chem-card:hover {
+  transform: scale(1.05);
+}
+
+.landing-chem-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  background: linear-gradient(120deg, rgb(255 255 255 / 0.18), transparent 40%);
+  pointer-events: none;
+}
+
+.landing-chem-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--landing-chem-text-color);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s ease;
+  z-index: 3;
+}
+
+.landing-chem-card:hover .landing-chem-text {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-chem-liquid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: var(--landing-chem-liquid);
+  transition: height 0.8s ease;
+}
+
+.landing-chem-card:hover .landing-chem-liquid {
+  height: 100%;
+}
+
+.landing-chem-wave {
+  position: absolute;
+  top: -40px;
+  width: 200%;
+  height: 80px;
+  color: var(--landing-chem-liquid);
+}
+
+.landing-chem-bubble {
+  position: absolute;
+  bottom: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 3px solid var(--landing-chem-liquid);
+  opacity: 0.9;
+  animation: landing-chem-rise linear infinite;
+}
+
+.landing-chem-bubble:nth-child(2) {
+  left: 15%;
+  width: 14px;
+  height: 14px;
+  animation-duration: 4s;
+}
+
+.landing-chem-bubble:nth-child(3) {
+  left: 35%;
+  width: 10px;
+  height: 10px;
+  animation-duration: 3.5s;
+}
+
+.landing-chem-bubble:nth-child(4) {
+  left: 55%;
+  width: 16px;
+  height: 16px;
+  animation-duration: 5s;
+}
+
+.landing-chem-bubble:nth-child(5) {
+  left: 75%;
+  width: 12px;
+  height: 12px;
+  animation-duration: 4.5s;
+}
+
+.landing-chem-bubble:nth-child(6) {
+  left: 45%;
+  width: 8px;
+  height: 8px;
+  animation-duration: 3s;
+}
+
+@keyframes landing-chem-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-320px);
+    opacity: 0;
+  }
+}
+
+.landing-phys-card {
+  width: 360px;
+  height: 400px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #0b1025, #000);
+  box-shadow: 0 0 80px rgb(0 0 0 / 0.9);
+  cursor: pointer;
+}
+
+.landing-phys-star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: landing-phys-blink 3s infinite ease-in-out;
+}
+
+.landing-phys-star.far {
+  width: 1px;
+  height: 1px;
+  opacity: 0.12;
+}
+
+.landing-phys-star.mid {
+  width: 2px;
+  height: 2px;
+  opacity: 0.22;
+}
+
+.landing-phys-star.near {
+  width: 3px;
+  height: 3px;
+  opacity: 0.35;
+}
+
+@keyframes landing-phys-blink {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.landing-phys-lines {
+  position: absolute;
+  inset: 0;
+}
+
+.landing-phys-line {
+  position: absolute;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #64b5f6, transparent);
+  left: -180px;
+  opacity: 0.35;
+  top: calc(var(--line-y) * 100%);
+  animation: landing-phys-flow 4.5s linear infinite;
+}
+
+.landing-phys-card.is-fast .landing-phys-line,
+.landing-phys-card:hover .landing-phys-line {
+  animation: landing-phys-flow 0.6s linear infinite;
+  opacity: 0.95;
+}
+
+@keyframes landing-phys-flow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(700px);
+  }
+}
+
+.landing-phys-text {
+  position: absolute;
+  top: 50%;
+  left: -140px;
+  transform: translateY(-50%);
+  font-size: 72px;
+  font-weight: 900;
+  color: #64b5f6;
+  letter-spacing: 5px;
+  opacity: 0;
+  transition: all 0.7s cubic-bezier(0.2, 1.2, 0.2, 1);
+}
+
+.landing-phys-card.is-active .landing-phys-text,
+.landing-phys-card:hover .landing-phys-text {
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  animation: landing-phys-shake 0.08s infinite;
+}
+
+@keyframes landing-phys-shake {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(-5px, 3px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(6px, -4px);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-4px, 5px);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(0, 0);
+  }
+}
+.btn-loading::after {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spinner 0.6s linear infinite;
+}
+@keyframes btn-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Skeleton pulse */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton shapes */
+.skeleton-text {
+  height: 1em;
+  line-height: 1;
+}
+.skeleton-title {
+  height: 1.5em;
+  width: 60%;
+}
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.skeleton-card {
+  height: 120px;
+  border-radius: 8px;
+}
+.skeleton-row {
+  height: 48px;
+  margin-bottom: 8px;
+}
+.animate-float-y {
+  animation: float-y 3s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-pop-in {
+  animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.animate-drift {
+  animation: drift 8s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-shimmer-border {
+  animation: shimmer-border 2s ease-out infinite;
+}
+.animate-fade-in {
+  animation: fade-in-soft 0.28s ease-out both;
+}
+
+.hover-scale {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+@keyframes shake-hard {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  10% {
+    transform: translate(-12px, 6px) rotate(-2deg);
+  }
+  20% {
+    transform: translate(12px, -6px) rotate(2deg);
+  }
+  30% {
+    transform: translate(-10px, -8px) rotate(-2deg);
+  }
+  40% {
+    transform: translate(10px, 8px) rotate(2deg);
+  }
+  50% {
+    transform: translate(-8px, 4px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(8px, -4px) rotate(1deg);
+  }
+  70% {
+    transform: translate(-6px, 6px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(6px, -6px) rotate(1deg);
+  }
+  90% {
+    transform: translate(-3px, 3px) rotate(0deg);
+  }
+}
+.animate-shake-hard {
+  animation: shake-hard 0.5s ease-in-out 3;
+}
+
+.text-rainbow {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)),
+    hsl(345 80% 55%),
+    hsl(var(--primary)),
+    hsl(20 90% 60%),
+    hsl(var(--primary))
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow-shift 4s ease-in-out infinite;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  /* Smooth theme transitions applied ONLY during theme toggle, not on every
+     element on every frame. The `.theme-transition` class is added to <html>
+     by the theme switcher for ~600ms around a theme change. */
+  html.theme-transition,
+  html.theme-transition body,
+  html.theme-transition [class*="bg-"],
+  html.theme-transition [class*="text-"],
+  html.theme-transition [class*="border-"] {
+    transition:
+      background-color 0.35s ease,
+      color 0.25s ease,
+      border-color 0.35s ease;
+  }
+
+  /* Respect the user's OS-level reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  html {
+    font-family: "Fredoka", sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Fredoka", sans-serif;
+  }
+
+  button:not(:disabled),
+  a[href],
+  [role="button"]:not([aria-disabled="true"]),
+  label:has(input:not(:disabled)),
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="color"]:not(:disabled),
+  input[type="range"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* ══════ Pro vibe overrides ══════ */
+.vibe-boring,
+.vibe-boring * {
+  font-family: "Sora", sans-serif !important;
+}
+
+.vibe-boring:not(.dark) {
+  --background: 220 14% 96%;
+  --foreground: 220 15% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 15% 14%;
+  --secondary: 220 10% 92%;
+  --muted: 220 10% 93%;
+  --muted-foreground: 220 8% 42%;
+  --accent: 220 10% 90%;
+  --border: 220 13% 88%;
+  --input: 220 13% 90%;
+  --card-pink: 0 0% 100%;
+  --card-blue: 0 0% 100%;
+  --card-green: 0 0% 100%;
+  --card-yellow: 0 0% 100%;
+  --card-purple: 0 0% 100%;
+}
+
+.vibe-boring.dark {
+  --background: 220 12% 6%;
+  --foreground: 220 8% 92%;
+  --card: 220 10% 10%;
+  --card-foreground: 220 8% 92%;
+  --popover: 220 10% 10%;
+  --popover-foreground: 220 8% 92%;
+  --secondary: 220 8% 14%;
+  --muted: 220 8% 13%;
+  --muted-foreground: 220 6% 58%;
+  --accent: 220 8% 16%;
+  --border: 220 8% 18%;
+  --input: 220 8% 14%;
+  --card-pink: 220 10% 11%;
+  --card-blue: 220 10% 11%;
+  --card-green: 220 10% 11%;
+  --card-yellow: 220 10% 11%;
+  --card-purple: 220 10% 11%;
+}
+
+/* Lighter, calmer borders & outlines in Pro mode */
+.vibe-boring [class*="border-2"],
+.vibe-boring [class*="border-[2.5px]"],
+.vibe-boring [class*="border-[3px]"] {
+  border-width: 1px !important;
+}
+.vibe-boring [class*="ring-4"],
+.vibe-boring [class*="ring-2"] {
+  box-shadow: 0 0 0 1px hsl(var(--border)) !important;
+}
+.vibe-boring [class*="border-border/60"],
+.vibe-boring [class*="border-border/40"],
+.vibe-boring [class*="border-border/50"] {
+  border-color: hsl(var(--border) / 0.5) !important;
+}
+
+.vibe-boring .rounded-2xl,
+.vibe-boring .rounded-3xl {
+  border-radius: 0.75rem !important;
+}
+
+.vibe-boring *,
+.vibe-boring *::before,
+.vibe-boring *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.18s !important;
+}
+
+/* User-applied accessibility styles (set from Tools → Styles) */
+.user-high-contrast {
+  filter: contrast(1.4);
+}
+.user-inverted {
+  filter: invert(1) hue-rotate(180deg);
+}
+.user-high-contrast.user-inverted {
+  filter: contrast(1.4) invert(1) hue-rotate(180deg);
+}
+/* Keep images legible when inverted */
+.user-inverted img,
+.user-inverted video,
+.user-inverted canvas,
+.user-inverted svg {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ============= Paper loading screen — swing/pendulum loader =============
+ * Pure CSS loader (no animation library needed). The dome + two side dots are
+ * built from radial gradients; the orange ball pendulums via a tiny rotation
+ * delta paired with an extreme cubic-bezier overshoot to swing convincingly.
+ */
+.paper-loader {
+  width: 80px;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(
+        farthest-side at top,
+        #0000 calc(100% - 21px),
+        hsl(var(--accent)) calc(100% - 20px) 99%,
+        #0000
+      )
+      bottom/100% 50%,
+    radial-gradient(farthest-side, hsl(var(--accent)) 94%, #0000) left / 20px 20px,
+    radial-gradient(farthest-side, hsl(var(--accent)) 94%, #0000) right / 20px 20px;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.paper-loader::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  inset: auto 0 0;
+  margin: auto;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  transform-origin: 50% -20px;
+  animation: paper-loader-swing 1.2s infinite ease-in-out;
+  will-change: transform;
+}
+@keyframes paper-loader-swing {
+  0%,
+  100% {
+    transform: rotate(-35deg);
+  }
+  50% {
+    transform: rotate(35deg);
+  }
+}
+
+/* Admin editor utility */
+.select {
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--background));
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  color: hsl(var(--foreground));
+}
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Play mode per-question timer (smooth CSS shrink) */
+@keyframes playmode-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Page-transition spinner shown on the cover while the next route is loading */
+.pt-loader {
+  width: 50px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 8px solid hsl(var(--accent));
+  border-right-color: hsl(var(--primary));
+  animation: pt-loader-spin 1s infinite linear;
+}
+@keyframes pt-loader-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ───────── Selection annotations ───────── */
+
+/* Floating selection toolbar */
+.anno-toolbar {
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  user-select: none;
+}
+.anno-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: hsl(var(--muted-foreground));
+  transition:
+    background 0.15s,
+    color 0.15s;
+  cursor: pointer;
+}
+.anno-toolbar-btn:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.anno-toolbar-btn-active {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+
+/* Tag/comment circles inline after the last word of an annotated range */
+.anno-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0 2px;
+  border-radius: 9999px;
+  border: 1.5px solid hsl(var(--primary));
+  background: hsl(var(--primary));
+  vertical-align: middle;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.anno-circle:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+.anno-circle-comment {
+  background: hsl(199 89% 48%);
+  border-color: hsl(199 89% 48%);
+}
+.anno-circle-comment:hover {
+  box-shadow: 0 0 0 3px hsl(199 89% 48% / 0.25);
+}
+
+/* Yellow speech-bubble tooltip for tag/comment circles */
+.anno-tooltip-bubble {
+  position: relative;
+  background: hsl(45 95% 60%);
+  color: hsl(40 60% 15%);
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.2;
+  max-width: 240px;
+  white-space: normal;
+  word-break: break-word;
+  box-shadow: 0 4px 12px -2px hsl(45 95% 30% / 0.4);
+}
+.anno-tooltip-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid hsl(45 95% 60%);
+}
+.anno-tooltip-more {
+  margin-left: 4px;
+  opacity: 0.65;
+  font-weight: 700;
+}
+
+/* Blur effect — reduces on hover, removed via .anno-blur-revealed */
+.anno-blur {
+  filter: blur(5px);
+  transition: filter 0.2s;
+  cursor: pointer;
+  user-select: none;
+}
+.anno-blur:hover {
+  filter: blur(1.5px);
+}
+.anno-blur-revealed {
+  filter: none !important;
+  cursor: text;
+  user-select: auto;
+}
+
+/* Hover-highlight applied to spans whose range matches the hovered tag/comment circle */
+.anno-hover-highlight {
+  background: hsl(var(--primary) / 0.28);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.18);
+  border-radius: 3px;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* ---- Streak widget (CSS-only animations to avoid framer-motion frame work) ---- */
+@keyframes streak-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+@keyframes streak-flame-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+@keyframes streak-spark {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(20px, -20px) scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes streak-pop {
+  0% {
+    transform: scale(2.2) translateY(-4px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+.streak-bob {
+  animation: streak-bob 2.2s ease-in-out infinite;
+  will-change: transform;
+}
+.streak-flame-pulse {
+  animation: streak-flame-pulse 1s ease-in-out infinite;
+  transform-origin: center;
+}
+.streak-spark {
+  animation: streak-spark 0.8s ease-out 1;
+}
+.streak-pop {
+  display: inline-block;
+  animation: streak-pop 0.35s cubic-bezier(0.2, 1.5, 0.4, 1) 1;
+  transform-origin: center;
+}
+
+/* Honor reduced motion globally — kills heavy animations for users who want it */
+@media (prefers-reduced-motion: reduce) {
+  .streak-bob,
+  .streak-flame-pulse,
+  .streak-spark,
+  .streak-pop {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.prose-editor,
+[contenteditable] {
+  unicode-bidi: isolate;
+  direction: ltr;
+  text-align: left;
+}
+.prose-editor {
+  unicode-bidi: plaintext;
+  direction: ltr;
+  text-align: left;
+  white-space: pre-wrap;
+}

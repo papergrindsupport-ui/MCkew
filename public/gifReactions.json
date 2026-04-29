@@ -1,0 +1,571 @@
+[
+  {
+    "src": "/gifs/correct.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct12.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct12345.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct19.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct191999.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct192.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct213.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct21_bottomcenter.gif",
+    "category": "correct",
+    "position": "bottom-center",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct222.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct22323_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct23.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct23434.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct24.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct2939.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct2_bottomleft.gif",
+    "category": "correct",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct324.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct32_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct4.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct5_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct66666_bottomleft.gif",
+    "category": "correct",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct67.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct7.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct83.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct9.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correct91_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correctf_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correcth_bottomright.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correcto_bottomcenter.gif",
+    "category": "correct",
+    "position": "bottom-center",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correctol_fullscreen.gif",
+    "category": "correct",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correctr.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correctt.gif",
+    "category": "correct",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/correcttt_bottomleft.gif",
+    "category": "correct",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/pagetrans_bottomright.gif",
+    "category": "page-open",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/pagetransition_bottomright.gif",
+    "category": "page-open",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/pagetranstition.gif",
+    "category": "page-open",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/running.gif",
+    "category": "theme-light",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce",
+    "animation": "run-left-to-right"
+  },
+  {
+    "src": "/gifs/runningbackwards.gif",
+    "category": "theme-dark",
+    "position": "top-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce",
+    "animation": "run-right-to-left"
+  },
+  {
+    "src": "/gifs/wrong123.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong12356_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong12_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong19_fullscreen.gif",
+    "category": "wrong",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong2.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong234_bottomcenter.gif",
+    "category": "wrong",
+    "position": "bottom-center",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong3.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong324.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong333.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong34.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong45_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong4_fullscreen.gif",
+    "category": "wrong",
+    "position": "center",
+    "size": "large",
+    "duration": 3400,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong55_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong55t_bottomleft.gif",
+    "category": "wrong",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong56_bottomleft.gif",
+    "category": "wrong",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong65.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong666_bottomleft.gif",
+    "category": "wrong",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong76.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong77_bottomcenter.gif",
+    "category": "wrong",
+    "position": "bottom-center",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrong_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongf_bottomright.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongff_bottomleft.gif",
+    "category": "wrong",
+    "position": "bottom-left",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongfg.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongg_bottomcenter.gif",
+    "category": "wrong",
+    "position": "bottom-center",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongh.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  },
+  {
+    "src": "/gifs/wrongsd.gif",
+    "category": "wrong",
+    "position": "bottom-right",
+    "size": "medium",
+    "duration": 2600,
+    "weight": 2,
+    "loop": "playonce"
+  }
+]
