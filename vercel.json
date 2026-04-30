@@ -1,13 +1,3 @@
 {
-  "version": 2,
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/node"
-    }
-  ],
-  "scripts": {
-    "build": "npm install --legacy-peer-deps && npm run build"
-  }
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
