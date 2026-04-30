@@ -40,7 +40,6 @@ import {
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import katexPkg from "katex";
-import "katex/dist/katex.min.css";
 import type { RichText, Run, RichBlock, ListBlock, InlineMark } from "@/data/questionData";
 import { cn } from "@/lib/utils";
 import { SymbolPicker } from "./SymbolPicker";

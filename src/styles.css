@@ -1206,14 +1206,14 @@
 .cc-vk540,
 .cc-vk540--status-initial,
 .cc-4ppoy {
-  opacity: 0;
-  display: none;
+  opacity: 0 ;
+  display: none  !important;
 }
 .cl-internal-l2l775,
 .cl-internal-1k7jtru,
 .cl-internal-13hl4in,
 .cl-internal-1fpq5at {
-  display: none;
-  opacity: none;
-  color: hsl(var(--color-foreground));
+  display: none  !important;
+  opacity: none  !important;
+  color: hsl(var(--color-foreground))  !important
 }

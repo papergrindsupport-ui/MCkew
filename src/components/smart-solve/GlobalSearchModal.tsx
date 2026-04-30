@@ -65,11 +65,11 @@ export function GlobalSearchModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden border-2 border-border/60 bg-card/95 backdrop-blur">
         <motion.div
-          initial={{ opacity: 0, y: 120, scale: 0.9, rotate: -2 }}
-          animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-          exit={{ opacity: 0, y: 80, scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20, mass: 0.9 }}
-          className="flex flex-col max-h-[78vh]"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.15 }}         
+     className="flex flex-col max-h-[78vh]"
         >
           <form
             onSubmit={(e) => {
