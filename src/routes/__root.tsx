@@ -116,21 +116,22 @@ export const Route = createRootRoute({
       {
         httpEquiv: "Content-Security-Policy",
         content: `
-    default-src 'self' https:;
+  default-src 'self' https:;
 
-    connect-src 'self' https: wss:;
+  connect-src 'self' https: wss:;
 
-    script-src 'self' https: 'unsafe-inline' 'unsafe-eval';
+  script-src 'self' https: 'unsafe-inline' 'unsafe-eval';
 
-    style-src 'self' https: 'unsafe-inline';
+  worker-src 'self' blob:;
 
-    font-src 'self' https: data:;
+  style-src 'self' https: 'unsafe-inline';
 
-    img-src 'self' https: data: blob:;
+  font-src 'self' https: data:;
 
-    frame-src https:;
+  img-src 'self' https: data: blob:;
 
-  `.replace(/\n/g, " "),
+  frame-src https:;
+`.replace(/\n/g, " "),
       },
     ],
     links: [
