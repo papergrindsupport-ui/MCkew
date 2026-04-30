@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster as HotToaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/clerk-react";
@@ -44,6 +44,7 @@ const ImageSearchDropOverlay = lazy(() =>
     default: m.ImageSearchDropOverlay,
   })),
 );
+
 const PlannerTasksHydrator = lazy(() =>
   import("@/lib/plannerTasksStore").then((m) => ({ default: m.PlannerTasksHydrator })),
 );
@@ -113,26 +114,6 @@ export const Route = createRootRoute({
         name: "twitter:image",
         content: "/favicons/android-chrome-512x512.png",
       },
-      {
-        httpEquiv: "Content-Security-Policy",
-        content: `
-  default-src 'self' https:;
-
-  connect-src 'self' https: wss:;
-
-  script-src 'self' https: 'unsafe-inline' 'unsafe-eval';
-
-  worker-src 'self' blob:;
-
-  style-src 'self' https: 'unsafe-inline';
-
-  font-src 'self' https: data:;
-
-  img-src 'self' https: data: blob:;
-
-  frame-src https:;
-`.replace(/\n/g, " "),
-      },
     ],
     links: [
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicons/favicon-16x16.png" },
@@ -193,17 +174,6 @@ function ClerkAppearanceRoot({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  // useEffect(() => {
-  //   const load = () => loadCrisp();
-
-  //   window.addEventListener("click", load, { once: true });
-  //   window.addEventListener("scroll", load, { once: true });
-
-  //   return () => {
-  //     window.removeEventListener("click", load);
-  //     window.removeEventListener("scroll", load);
-  //   };
-  // }, []);
   return (
     <ClerkAppearanceRoot>
       <AccountProvider>
@@ -212,6 +182,7 @@ function RootComponent() {
             <Outlet />
             <PageTransition />
             <Suspense fallback={null}>
+              <CrispChat />
               <GifPageReactions />
               <MouseParticlesClient />
               <StreakWidget />

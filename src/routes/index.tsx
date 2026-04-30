@@ -39,26 +39,6 @@ export const Route = createFileRoute("/")({
         content:
           "MCkew turns IGCSE Biology, Chemistry & Physics past papers into a gamified challenge with instant smart marking.",
       },
-      {
-        httpEquiv: "Content-Security-Policy",
-        content: `
-  default-src 'self' https:;
-
-  connect-src 'self' https: wss:;
-
-  script-src 'self' https: 'unsafe-inline' 'unsafe-eval';
-
-  worker-src 'self' blob:;
-
-  style-src 'self' https: 'unsafe-inline';
-
-  font-src 'self' https: data:;
-
-  img-src 'self' https: data: blob:;
-
-  frame-src https:;
-`.replace(/\n/g, " "),
-      },
     ],
   }),
 });
