@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SocialLogo } from "social-logos";
 import { ChevronDown, ExternalLink, AlertCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  FaInstagram,
+  FaTwitter,
+  FaFacebook,
+  FaReddit,
+  FaTiktok,
+  FaLinkedin,
+  FaDiscord,
+  FaTelegram,
+  FaSnapchat,
+  FaLink,
+} from "react-icons/fa";
 import type { SocialContact, SocialPlatform } from "./volunteer-types";
 
 interface PlatformDef {
@@ -10,7 +21,7 @@ interface PlatformDef {
   label: string;
   prefix: string;
   buildLink: (u: string) => string;
-  icon: string;
+  icon: React.ReactNode; // Updated to React.ReactNode to handle the icons directly
 }
 
 const PLATFORMS: PlatformDef[] = [
@@ -19,65 +30,65 @@ const PLATFORMS: PlatformDef[] = [
     label: "Instagram",
     prefix: "@",
     buildLink: (u) => `https://instagram.com/${u}`,
-    icon: "instagram",
+    icon: <FaInstagram />, // Using react-icons for Instagram
   },
   {
     value: "twitter",
     label: "X (Twitter)",
     prefix: "@",
     buildLink: (u) => `https://x.com/${u}`,
-    icon: "x",
+    icon: <FaTwitter />, // Using react-icons for Twitter
   },
   {
     value: "facebook",
     label: "Facebook",
     prefix: "@",
     buildLink: (u) => `https://facebook.com/${u}`,
-    icon: "facebook",
+    icon: <FaFacebook />, // Using react-icons for Facebook
   },
   {
     value: "reddit",
     label: "Reddit",
     prefix: "u/",
     buildLink: (u) => `https://reddit.com/user/${u}`,
-    icon: "reddit",
+    icon: <FaReddit />, // Using react-icons for Reddit
   },
   {
     value: "tiktok",
     label: "TikTok",
     prefix: "@",
     buildLink: (u) => `https://tiktok.com/@${u}`,
-    icon: "tiktok",
+    icon: <FaTiktok />, // Using react-icons for TikTok
   },
   {
     value: "linkedin",
     label: "LinkedIn",
     prefix: "in/",
     buildLink: (u) => `https://linkedin.com/in/${u}`,
-    icon: "linkedin",
+    icon: <FaLinkedin />, // Using react-icons for LinkedIn
   },
   {
     value: "discord",
     label: "Discord",
     prefix: "",
     buildLink: (u) => `https://discord.com/users/${u}`,
-    icon: "discord",
+    icon: <FaDiscord />, // Using react-icons for Discord
   },
   {
     value: "telegram",
     label: "Telegram",
     prefix: "@",
     buildLink: (u) => `https://t.me/${u}`,
-    icon: "telegram",
+    icon: <FaTelegram />, // Using react-icons for Telegram
   },
   {
     value: "snapchat",
     label: "Snapchat",
     prefix: "",
     buildLink: (u) => `https://snapchat.com/add/${u}`,
-    icon: "snapchat",
+    icon: <FaSnapchat />, // Using react-icons for Snapchat
   },
-  { value: "other", label: "Other", prefix: "", buildLink: (u) => u, icon: "link" },
+  { value: "other", label: "Other", prefix: "", buildLink: (u) => u, icon: <FaLink /> }, // Using a generic link icon
 ];
 
 interface Props {
@@ -101,7 +112,7 @@ export default function SocialInput({ value, onChange }: Props) {
               whileTap={{ scale: 0.95 }}
               className="flex items-center gap-2 px-3 h-11 rounded-xl border-2 border-border bg-card hover:bg-muted/50 transition-colors min-w-[140px]"
             >
-              <SocialLogo icon={platform.icon as any} size={18} />
+              {platform.icon}
               <span className="text-sm font-semibold text-foreground flex-1 text-left">
                 {platform.label}
               </span>
@@ -125,7 +136,7 @@ export default function SocialInput({ value, onChange }: Props) {
                       : "text-foreground hover:bg-muted"
                   }`}
                 >
-                  <SocialLogo icon={p.icon as any} size={18} />
+                  {p.icon}
                   <span>{p.label}</span>
                 </motion.button>
               ))}
@@ -181,7 +192,7 @@ export default function SocialInput({ value, onChange }: Props) {
             )}
             {value.platform !== "instagram" && (
               <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                <SocialLogo icon={platform.icon as any} size={16} />
+                {platform.icon}
               </div>
             )}
             <a
