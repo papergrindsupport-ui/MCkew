@@ -3,8 +3,8 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { Toaster as HotToaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { CLERK_PUBLISHABLE_KEY } from "@/lib/clerkConfig";
-import { useEffect } from "react";
-import { loadCrisp } from "@/lib/crisp";
+// import { useEffect } from "react";
+// import { loadCrisp } from "@/lib/crisp";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { getClerkAppearance } from "@/lib/clerkAppearance";
 import { AccountProvider } from "@/integrations/account/AccountProvider";
@@ -53,6 +53,7 @@ const AdminStoreHydrator = lazy(() =>
 
 import appCss from "../styles.css?url";
 import { MouseParticlesClient } from "@/components/ClientOnlyMP";
+import { CrispChat } from "@/components/CrispChat";
 
 function NotFoundComponent() {
   return (
@@ -172,17 +173,17 @@ function ClerkAppearanceRoot({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  useEffect(() => {
-    const load = () => loadCrisp();
+  // useEffect(() => {
+  //   const load = () => loadCrisp();
 
-    window.addEventListener("click", load, { once: true });
-    window.addEventListener("scroll", load, { once: true });
+  //   window.addEventListener("click", load, { once: true });
+  //   window.addEventListener("scroll", load, { once: true });
 
-    return () => {
-      window.removeEventListener("click", load);
-      window.removeEventListener("scroll", load);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("click", load);
+  //     window.removeEventListener("scroll", load);
+  //   };
+  // }, []);
   return (
     <ClerkAppearanceRoot>
       <AccountProvider>
@@ -201,6 +202,7 @@ function RootComponent() {
               <BlurRevealHandler />
               <ImageSearchDropOverlay />
               <PlannerTasksHydrator />
+              <CrispChat />
               <AdminStoreHydrator />
             </Suspense>
             <HotToaster

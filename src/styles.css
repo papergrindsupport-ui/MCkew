@@ -1203,3 +1203,17 @@
   background-color: yellow;
 }
 /* hi */
+.cc-vk540,
+.cc-vk540--status-initial,
+.cc-4ppoy {
+  opacity: 0;
+  display: none;
+}
+.cl-internal-l2l775,
+.cl-internal-1k7jtru,
+.cl-internal-13hl4in,
+.cl-internal-1fpq5at {
+  display: none;
+  opacity: none;
+  color: hsl(var(--color-foreground));
+}
