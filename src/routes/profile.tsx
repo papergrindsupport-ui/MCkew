@@ -3,7 +3,8 @@
 // and "Preview profile" button that goes to /profile/{username}.
 
 import { useState, useMemo, useEffect } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { UserProfile } from "@clerk/clerk-react";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import {
@@ -45,7 +46,7 @@ import {
   updateCurrentUser,
   updateVisibility,
   avatarUrlFor,
-  dicebearPreview,
+  dicebearPngUrl,
   resetProfile,
 } from "@/lib/profileStore";
 import { EXAM_SESSIONS, type Subject } from "@/data/profileTypes";
@@ -59,9 +60,15 @@ import FlairBuilder from "@/components/profile/FlairBuilder";
 import VisibilityToggle from "@/components/profile/VisibilityToggle";
 import SetupWizard from "@/components/profile/SetupWizard";
 import { ProfileSync } from "@/components/profile/ProfileSync";
+import { useThemeStore } from "@/stores/useThemeStore";
+import { getClerkAppearance } from "@/lib/clerkAppearance";
+import Navbar from "@/components/Navbar";
+import { useAccountStore } from "@/stores/useAccountStore";
+import { EnvRoleBadges } from "@/components/profile/EnvRoleBadges";
+import { roleFlagsForCandidateIds } from "@/lib/envRoleBadges";
 
 export const Route = createFileRoute("/profile")({
-  component: ProfileGate,
+  component: ProfileLayout,
   validateSearch: (s: Record<string, unknown>): { tab?: string } => {
     const out: { tab?: string } = {};
     if (typeof s.tab === "string") out.tab = s.tab;
@@ -70,6 +77,25 @@ export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Edit profile — MCkew" }] }),
 });
 
+/** Child route `/profile/$username` must render here; parent editor is only for exact `/profile`. */
+function ProfileLayout() {
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname.replace(/\/$/, "") || "/",
+  });
+  const isPublicProfileChild = pathname.startsWith("/profile/") && pathname !== "/profile";
+
+  if (isPublicProfileChild) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <Outlet />
+      </div>
+    );
+  }
+
+  return <ProfileGate />;
+}
+
 function ProfileGate() {
   const { isLoaded, isSignedIn } = useUser();
   const navigate = useNavigate();
@@ -77,15 +103,19 @@ function ProfileGate() {
   // While Clerk is initializing, show a soft skeleton instead of the full UI.
   if (!isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sm text-muted-foreground">Loading…</div>
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <div className="flex items-center justify-center py-24">
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        </div>
       </div>
     );
   }
 
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col text-foreground">
+        <Navbar />
         <div className="sticky top-0 z-30 border-b-2 border-border bg-background/90 backdrop-blur">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 h-16 flex items-center gap-3">
             <Link
@@ -125,7 +155,12 @@ function ProfileGate() {
     );
   }
 
-  return <ProfileEditor />;
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar />
+      <ProfileEditor />
+    </div>
+  );
 }
 
 const SUBJECTS: { id: Subject; label: string; Icon: typeof BookOpen }[] = [
@@ -179,10 +214,32 @@ function FieldRow({
 
 function ProfileEditor() {
   const me = useCurrentUser();
+  const { user: clerkUser } = useUser();
+  const accountProfile = useAccountStore((s) => s.profile);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const [wizardOpen, setWizardOpen] = useState(false);
   const tab = search.tab ?? "overview";
+  const isDark = useThemeStore((s) => s.isDark);
+  const clerkAppearance = useMemo(() => getClerkAppearance(isDark), [isDark]);
+
+  const envRoleFlags = useMemo(
+    () =>
+      roleFlagsForCandidateIds([
+        clerkUser?.id,
+        accountProfile?.id,
+        accountProfile?.public_id,
+        accountProfile?.clerk_user_id,
+        me.username,
+      ]),
+    [
+      clerkUser?.id,
+      accountProfile?.id,
+      accountProfile?.public_id,
+      accountProfile?.clerk_user_id,
+      me.username,
+    ],
+  );
 
   function setTab(next: string) {
     navigate({ search: { tab: next === "overview" ? undefined : next }, replace: true });
@@ -193,7 +250,7 @@ function ProfileEditor() {
   const goSettings = () => setTab("settings");
 
   const avatar = avatarUrlFor(me);
-  const dicePreview = dicebearPreview(me.username);
+  const dicePreview = dicebearPngUrl(me.username);
 
   return (
     <div className="min-h-screen bg-background">
@@ -258,6 +315,7 @@ function ProfileEditor() {
                 <h2 className="text-2xl font-extrabold text-foreground truncate">
                   {me.displayName}
                 </h2>
+                <EnvRoleBadges flags={envRoleFlags} />
                 <button
                   onClick={goSettings}
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
@@ -620,7 +678,7 @@ function ProfileEditor() {
                 <div className="rounded-3xl border-2 border-border bg-card p-5 space-y-4">
                   <SectionTitle
                     title="Profile settings"
-                    hint="Account-level identity (username, avatar, email, phone) lives here. Full account settings will move into Clerk soon."
+                    hint="Manage your Clerk account security, passwords, sessions, and connected accounts below."
                   />
 
                   <div className="grid gap-4">
@@ -704,8 +762,8 @@ function ProfileEditor() {
                     </div>
                   </div>
 
-                  <div className="mt-4 p-4 rounded-2xl border-2 border-dashed border-border bg-muted/40 text-center text-sm text-muted-foreground">
-                    Full account settings coming soon — Clerk will live in this section.
+                  <div className="mt-4 rounded-2xl border-2 border-border overflow-hidden bg-card [&_.cl-footer]:rounded-none">
+                    <UserProfile routing="hash" appearance={clerkAppearance} />
                   </div>
                 </div>
               </TabsContent>

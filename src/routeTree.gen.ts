@@ -36,6 +36,7 @@ import { Route as DashboardDeskRouteImport } from './routes/dashboard.desk'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as ApiWalletRouteImport } from './routes/api/wallet'
 import { Route as ApiVolunteerApplicationsRouteImport } from './routes/api/volunteer-applications'
+import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as ApiStreaksRouteImport } from './routes/api/streaks'
 import { Route as ApiSendEmailRouteImport } from './routes/api/send-email'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
@@ -43,6 +44,8 @@ import { Route as ApiPlannerTasksRouteImport } from './routes/api/planner-tasks'
 import { Route as ApiPapersOverridesRouteImport } from './routes/api/papers-overrides'
 import { Route as ApiPapersRouteImport } from './routes/api/papers'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
+import { Route as ApiGiftsRouteImport } from './routes/api/gifts'
+import { Route as ApiFollowRouteImport } from './routes/api/follow'
 import { Route as ApiFeedbackNotesRouteImport } from './routes/api/feedback-notes'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiExamPreviewSharesRouteImport } from './routes/api/exam-preview-shares'
@@ -65,6 +68,7 @@ import { Route as AdminEditorPaperIdRouteImport } from './routes/admin.editor.$p
 import { Route as ApiPapersPaperIdThresholdsRouteImport } from './routes/api/papers.$paperId.thresholds'
 import { Route as ApiPapersPaperIdQuestionsRouteImport } from './routes/api/papers.$paperId.questions'
 import { Route as ApiPapersPaperIdAnswerKeyRouteImport } from './routes/api/papers.$paperId.answer-key'
+import { Route as ApiFollowsPublicIdListRouteImport } from './routes/api/follows.$publicId.list'
 
 const VolunteerRoute = VolunteerRouteImport.update({
   id: '/volunteer',
@@ -206,6 +210,11 @@ const ApiVolunteerApplicationsRoute =
     path: '/api/volunteer-applications',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
+  id: '/api/uploadthing',
+  path: '/api/uploadthing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStreaksRoute = ApiStreaksRouteImport.update({
   id: '/api/streaks',
   path: '/api/streaks',
@@ -239,6 +248,16 @@ const ApiPapersRoute = ApiPapersRouteImport.update({
 const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
   id: '/api/leaderboard',
   path: '/api/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGiftsRoute = ApiGiftsRouteImport.update({
+  id: '/api/gifts',
+  path: '/api/gifts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFollowRoute = ApiFollowRouteImport.update({
+  id: '/api/follow',
+  path: '/api/follow',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFeedbackNotesRoute = ApiFeedbackNotesRouteImport.update({
@@ -356,6 +375,11 @@ const ApiPapersPaperIdAnswerKeyRoute =
     path: '/answer-key',
     getParentRoute: () => ApiPapersPaperIdRoute,
   } as any)
+const ApiFollowsPublicIdListRoute = ApiFollowsPublicIdListRouteImport.update({
+  id: '/api/follows/$publicId/list',
+  path: '/api/follows/$publicId/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -382,6 +406,8 @@ export interface FileRoutesByFullPath {
   '/api/exam-preview-shares': typeof ApiExamPreviewSharesRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/feedback-notes': typeof ApiFeedbackNotesRouteWithChildren
+  '/api/follow': typeof ApiFollowRoute
+  '/api/gifts': typeof ApiGiftsRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/papers': typeof ApiPapersRouteWithChildren
   '/api/papers-overrides': typeof ApiPapersOverridesRoute
@@ -389,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/api/profile': typeof ApiProfileRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/streaks': typeof ApiStreaksRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/volunteer-applications': typeof ApiVolunteerApplicationsRoute
   '/api/wallet': typeof ApiWalletRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -411,6 +438,7 @@ export interface FileRoutesByFullPath {
   '/api/planner-tasks/$id': typeof ApiPlannerTasksIdRoute
   '/api/public-profile/$username': typeof ApiPublicProfileUsernameRoute
   '/dashboard/tables/$subject': typeof DashboardTablesSubjectRoute
+  '/api/follows/$publicId/list': typeof ApiFollowsPublicIdListRoute
   '/api/papers/$paperId/answer-key': typeof ApiPapersPaperIdAnswerKeyRoute
   '/api/papers/$paperId/questions': typeof ApiPapersPaperIdQuestionsRoute
   '/api/papers/$paperId/thresholds': typeof ApiPapersPaperIdThresholdsRoute
@@ -439,6 +467,8 @@ export interface FileRoutesByTo {
   '/api/exam-preview-shares': typeof ApiExamPreviewSharesRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/feedback-notes': typeof ApiFeedbackNotesRouteWithChildren
+  '/api/follow': typeof ApiFollowRoute
+  '/api/gifts': typeof ApiGiftsRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/papers': typeof ApiPapersRouteWithChildren
   '/api/papers-overrides': typeof ApiPapersOverridesRoute
@@ -446,6 +476,7 @@ export interface FileRoutesByTo {
   '/api/profile': typeof ApiProfileRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/streaks': typeof ApiStreaksRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/volunteer-applications': typeof ApiVolunteerApplicationsRoute
   '/api/wallet': typeof ApiWalletRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -468,6 +499,7 @@ export interface FileRoutesByTo {
   '/api/planner-tasks/$id': typeof ApiPlannerTasksIdRoute
   '/api/public-profile/$username': typeof ApiPublicProfileUsernameRoute
   '/dashboard/tables/$subject': typeof DashboardTablesSubjectRoute
+  '/api/follows/$publicId/list': typeof ApiFollowsPublicIdListRoute
   '/api/papers/$paperId/answer-key': typeof ApiPapersPaperIdAnswerKeyRoute
   '/api/papers/$paperId/questions': typeof ApiPapersPaperIdQuestionsRoute
   '/api/papers/$paperId/thresholds': typeof ApiPapersPaperIdThresholdsRoute
@@ -498,6 +530,8 @@ export interface FileRoutesById {
   '/api/exam-preview-shares': typeof ApiExamPreviewSharesRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/feedback-notes': typeof ApiFeedbackNotesRouteWithChildren
+  '/api/follow': typeof ApiFollowRoute
+  '/api/gifts': typeof ApiGiftsRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/papers': typeof ApiPapersRouteWithChildren
   '/api/papers-overrides': typeof ApiPapersOverridesRoute
@@ -505,6 +539,7 @@ export interface FileRoutesById {
   '/api/profile': typeof ApiProfileRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/streaks': typeof ApiStreaksRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/volunteer-applications': typeof ApiVolunteerApplicationsRoute
   '/api/wallet': typeof ApiWalletRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -527,6 +562,7 @@ export interface FileRoutesById {
   '/api/planner-tasks/$id': typeof ApiPlannerTasksIdRoute
   '/api/public-profile/$username': typeof ApiPublicProfileUsernameRoute
   '/dashboard/tables/$subject': typeof DashboardTablesSubjectRoute
+  '/api/follows/$publicId/list': typeof ApiFollowsPublicIdListRoute
   '/api/papers/$paperId/answer-key': typeof ApiPapersPaperIdAnswerKeyRoute
   '/api/papers/$paperId/questions': typeof ApiPapersPaperIdQuestionsRoute
   '/api/papers/$paperId/thresholds': typeof ApiPapersPaperIdThresholdsRoute
@@ -558,6 +594,8 @@ export interface FileRouteTypes {
     | '/api/exam-preview-shares'
     | '/api/feedback'
     | '/api/feedback-notes'
+    | '/api/follow'
+    | '/api/gifts'
     | '/api/leaderboard'
     | '/api/papers'
     | '/api/papers-overrides'
@@ -565,6 +603,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/send-email'
     | '/api/streaks'
+    | '/api/uploadthing'
     | '/api/volunteer-applications'
     | '/api/wallet'
     | '/dashboard/analytics'
@@ -587,6 +626,7 @@ export interface FileRouteTypes {
     | '/api/planner-tasks/$id'
     | '/api/public-profile/$username'
     | '/dashboard/tables/$subject'
+    | '/api/follows/$publicId/list'
     | '/api/papers/$paperId/answer-key'
     | '/api/papers/$paperId/questions'
     | '/api/papers/$paperId/thresholds'
@@ -615,6 +655,8 @@ export interface FileRouteTypes {
     | '/api/exam-preview-shares'
     | '/api/feedback'
     | '/api/feedback-notes'
+    | '/api/follow'
+    | '/api/gifts'
     | '/api/leaderboard'
     | '/api/papers'
     | '/api/papers-overrides'
@@ -622,6 +664,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/send-email'
     | '/api/streaks'
+    | '/api/uploadthing'
     | '/api/volunteer-applications'
     | '/api/wallet'
     | '/dashboard/analytics'
@@ -644,6 +687,7 @@ export interface FileRouteTypes {
     | '/api/planner-tasks/$id'
     | '/api/public-profile/$username'
     | '/dashboard/tables/$subject'
+    | '/api/follows/$publicId/list'
     | '/api/papers/$paperId/answer-key'
     | '/api/papers/$paperId/questions'
     | '/api/papers/$paperId/thresholds'
@@ -673,6 +717,8 @@ export interface FileRouteTypes {
     | '/api/exam-preview-shares'
     | '/api/feedback'
     | '/api/feedback-notes'
+    | '/api/follow'
+    | '/api/gifts'
     | '/api/leaderboard'
     | '/api/papers'
     | '/api/papers-overrides'
@@ -680,6 +726,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/send-email'
     | '/api/streaks'
+    | '/api/uploadthing'
     | '/api/volunteer-applications'
     | '/api/wallet'
     | '/dashboard/analytics'
@@ -702,6 +749,7 @@ export interface FileRouteTypes {
     | '/api/planner-tasks/$id'
     | '/api/public-profile/$username'
     | '/dashboard/tables/$subject'
+    | '/api/follows/$publicId/list'
     | '/api/papers/$paperId/answer-key'
     | '/api/papers/$paperId/questions'
     | '/api/papers/$paperId/thresholds'
@@ -731,6 +779,8 @@ export interface RootRouteChildren {
   ApiExamPreviewSharesRoute: typeof ApiExamPreviewSharesRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiFeedbackNotesRoute: typeof ApiFeedbackNotesRouteWithChildren
+  ApiFollowRoute: typeof ApiFollowRoute
+  ApiGiftsRoute: typeof ApiGiftsRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
   ApiPapersRoute: typeof ApiPapersRouteWithChildren
   ApiPapersOverridesRoute: typeof ApiPapersOverridesRoute
@@ -738,6 +788,7 @@ export interface RootRouteChildren {
   ApiProfileRoute: typeof ApiProfileRoute
   ApiSendEmailRoute: typeof ApiSendEmailRoute
   ApiStreaksRoute: typeof ApiStreaksRoute
+  ApiUploadthingRoute: typeof ApiUploadthingRoute
   ApiVolunteerApplicationsRoute: typeof ApiVolunteerApplicationsRoute
   ApiWalletRoute: typeof ApiWalletRoute
   SmartSolveAllExamPreviewRoute: typeof SmartSolveAllExamPreviewRoute
@@ -750,6 +801,7 @@ export interface RootRouteChildren {
   ApiAdminInitRoute: typeof ApiAdminInitRoute
   ApiAdminSeedRoute: typeof ApiAdminSeedRoute
   ApiPublicProfileUsernameRoute: typeof ApiPublicProfileUsernameRoute
+  ApiFollowsPublicIdListRoute: typeof ApiFollowsPublicIdListRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -943,6 +995,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVolunteerApplicationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/uploadthing': {
+      id: '/api/uploadthing'
+      path: '/api/uploadthing'
+      fullPath: '/api/uploadthing'
+      preLoaderRoute: typeof ApiUploadthingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/streaks': {
       id: '/api/streaks'
       path: '/api/streaks'
@@ -990,6 +1049,20 @@ declare module '@tanstack/react-router' {
       path: '/api/leaderboard'
       fullPath: '/api/leaderboard'
       preLoaderRoute: typeof ApiLeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gifts': {
+      id: '/api/gifts'
+      path: '/api/gifts'
+      fullPath: '/api/gifts'
+      preLoaderRoute: typeof ApiGiftsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/follow': {
+      id: '/api/follow'
+      path: '/api/follow'
+      fullPath: '/api/follow'
+      preLoaderRoute: typeof ApiFollowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/feedback-notes': {
@@ -1146,6 +1219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPapersPaperIdAnswerKeyRouteImport
       parentRoute: typeof ApiPapersPaperIdRoute
     }
+    '/api/follows/$publicId/list': {
+      id: '/api/follows/$publicId/list'
+      path: '/api/follows/$publicId/list'
+      fullPath: '/api/follows/$publicId/list'
+      preLoaderRoute: typeof ApiFollowsPublicIdListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1285,6 +1365,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExamPreviewSharesRoute: ApiExamPreviewSharesRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiFeedbackNotesRoute: ApiFeedbackNotesRouteWithChildren,
+  ApiFollowRoute: ApiFollowRoute,
+  ApiGiftsRoute: ApiGiftsRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
   ApiPapersRoute: ApiPapersRouteWithChildren,
   ApiPapersOverridesRoute: ApiPapersOverridesRoute,
@@ -1292,6 +1374,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProfileRoute: ApiProfileRoute,
   ApiSendEmailRoute: ApiSendEmailRoute,
   ApiStreaksRoute: ApiStreaksRoute,
+  ApiUploadthingRoute: ApiUploadthingRoute,
   ApiVolunteerApplicationsRoute: ApiVolunteerApplicationsRoute,
   ApiWalletRoute: ApiWalletRoute,
   SmartSolveAllExamPreviewRoute: SmartSolveAllExamPreviewRoute,
@@ -1304,6 +1387,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminInitRoute: ApiAdminInitRoute,
   ApiAdminSeedRoute: ApiAdminSeedRoute,
   ApiPublicProfileUsernameRoute: ApiPublicProfileUsernameRoute,
+  ApiFollowsPublicIdListRoute: ApiFollowsPublicIdListRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

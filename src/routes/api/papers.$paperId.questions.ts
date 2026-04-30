@@ -2,22 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { json, preflight } from "@/server/auth.server";
-import { verifyClerkJWT, bearerFrom } from "@/server/clerk.server";
-
-async function requireAdmin(req: Request): Promise<true | Response> {
-  const token = bearerFrom(req as any);
-  if (!token) return json({ error: "Unauthorized" }, { status: 401 });
-  const claims = await verifyClerkJWT(token);
-  if (!claims?.sub) return json({ error: "Unauthorized" }, { status: 401 });
-  const { data } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("clerk_user_id", claims.sub)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (!data) return json({ error: "Forbidden" }, { status: 403 });
-  return true;
-}
+import { requireAdmin } from "@/server/requireAdmin";
 
 export const Route = createFileRoute("/api/papers/$paperId/questions")({
   server: {
@@ -27,7 +12,7 @@ export const Route = createFileRoute("/api/papers/$paperId/questions")({
       // PUT: replace entire question set for the paper
       PUT: async ({ params, request }) => {
         const auth = await requireAdmin(request);
-        if (auth !== true) return auth;
+        if (auth instanceof Response) return auth;
         const body = await request.json().catch(() => null);
         if (!body || !Array.isArray(body.questions)) {
           return json({ error: "Invalid body: { questions: [...] }" }, { status: 400 });

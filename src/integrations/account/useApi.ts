@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { createApiClient, type ApiClient } from "@/lib/apiClient";
+import { getClerkJwtForApi } from "@/lib/getClerkApiJwt";
 import { useAccountStore } from "@/stores/useAccountStore";
 
 export function useApi(): ApiClient {
@@ -12,9 +13,7 @@ export function useApi(): ApiClient {
   return useMemo(
     () =>
       createApiClient({
-        getToken: isSignedIn
-          ? () => getToken({ template: "supabase" }).catch(() => null)
-          : undefined,
+        getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
         publicId: !isSignedIn ? (profile?.public_id ?? null) : null,
       }),
     [getToken, isSignedIn, profile?.public_id],

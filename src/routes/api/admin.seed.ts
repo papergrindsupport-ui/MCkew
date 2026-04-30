@@ -3,26 +3,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { json, preflight } from "@/server/auth.server";
-import { verifyClerkJWT, bearerFrom } from "@/server/clerk.server";
+import { requireAdmin } from "@/server/requireAdmin";
 import { PAPERS } from "@/data/paperData";
 import { getAnswerKey } from "@/data/answerKey";
 import { getPaperThresholds } from "@/data/gradeThresholds";
 import { getPaperQuestions } from "@/data/paperQuestions";
-
-async function requireAdmin(req: Request): Promise<true | Response> {
-  const token = bearerFrom(req);
-  if (!token) return json({ error: "Unauthorized" }, { status: 401 });
-  const claims = await verifyClerkJWT(token);
-  if (!claims?.sub) return json({ error: "Unauthorized" }, { status: 401 });
-  const { data } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("clerk_user_id", claims.sub)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (!data) return json({ error: "Forbidden: admin role required" }, { status: 403 });
-  return true;
-}
 
 export const Route = createFileRoute("/api/admin/seed")({
   server: {
@@ -31,7 +16,7 @@ export const Route = createFileRoute("/api/admin/seed")({
 
       POST: async ({ request }) => {
         const auth = await requireAdmin(request);
-        if (auth !== true) return auth;
+        if (auth instanceof Response) return auth;
 
         const stats = { papers: 0, questions: 0, answerKeys: 0, thresholds: 0 };
 

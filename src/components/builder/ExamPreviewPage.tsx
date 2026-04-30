@@ -198,7 +198,7 @@ export function ExamPreviewPage({ previewId, shareId, subject }: Props) {
   const pages = useMemo(() => (items.length ? [items] : []), [items]);
 
   const isShared = !!shareMeta?.id;
-  const audience: "student" | "editor" = shareMeta?.audience ?? payload.audience;
+  const audience: "student" | "editor" = shareMeta?.audience ?? payload?.audience ?? "editor";
   const readOnly = !!shareMeta?.readOnly;
   const isStudentLink = isShared && audience === "student";
   const [creatingShare, setCreatingShare] = useState(false);
@@ -267,8 +267,11 @@ export function ExamPreviewPage({ previewId, shareId, subject }: Props) {
       initialState={shareInitialSession ?? undefined}
       readOnly={readOnly}
     >
-      <div className="min-h-screen bg-muted/30 text-foreground exam-preview-print-root" style={styleOverrides}>
-      <style>{`
+      <div
+        className="min-h-screen bg-muted/30 text-foreground exam-preview-print-root"
+        style={styleOverrides}
+      >
+        <style>{`
         /* Force browsers to keep our theme colors when printing / saving as PDF */
         .exam-preview-print-root,
         .exam-preview-print-root * {
@@ -372,356 +375,359 @@ export function ExamPreviewPage({ previewId, shareId, subject }: Props) {
           }
         }
       `}</style>
-      {!isStudentLink && (
-        <ExamPreviewHeader
-          subject={subject}
-          title={settings.title}
-          docType={settings.docType}
-          questionCount={sessionQuestions.length}
-          marks={marks}
-          onOpenSettings={() => setSettingsOpen(true)}
-          creatingShare={creatingShare}
-          shareReadOnly={shareReadOnly}
-          setShareReadOnly={setShareReadOnly}
-          onCopyLink={async (aud) => {
-            setCreatingShare(true);
-            try {
-              const s = usePaperSession();
-              const { id } = await createExamPreviewShare({
-                audience: aud,
-                readOnly: shareReadOnly,
-                subject,
-                data: {
-                  draft,
-                  fields: {
-                    studentName,
-                    centerNumber,
-                    signature,
-                    date,
-                    overallEarned,
-                    feedbackPick,
+        {!isStudentLink && (
+          <ExamPreviewHeader
+            subject={subject}
+            title={settings.title}
+            docType={settings.docType}
+            questionCount={sessionQuestions.length}
+            marks={marks}
+            onOpenSettings={() => setSettingsOpen(true)}
+            creatingShare={creatingShare}
+            shareReadOnly={shareReadOnly}
+            setShareReadOnly={setShareReadOnly}
+            onCopyLink={async (aud) => {
+              setCreatingShare(true);
+              try {
+                const s = usePaperSession();
+                const { id } = await createExamPreviewShare({
+                  audience: aud,
+                  readOnly: shareReadOnly,
+                  subject,
+                  data: {
+                    draft,
+                    fields: {
+                      studentName,
+                      centerNumber,
+                      signature,
+                      date,
+                      overallEarned,
+                      feedbackPick,
+                    },
+                    paperSession: {
+                      settings: s.settings,
+                      selected: s.selected,
+                      status: s.status,
+                      eliminated: s.eliminated,
+                      paperSubmitted: s.paperSubmitted,
+                      reviewFilter: s.reviewFilter,
+                      timers: s.timers,
+                      stopwatchEnabled: s.stopwatchEnabled,
+                      stopwatchRunning: s.stopwatchRunning,
+                      stopwatchSec: s.stopwatchSec,
+                      stopwatchLaps: s.stopwatchLaps,
+                    },
                   },
-                  paperSession: {
-                    settings: s.settings,
-                    selected: s.selected,
-                    status: s.status,
-                    eliminated: s.eliminated,
-                    paperSubmitted: s.paperSubmitted,
-                    reviewFilter: s.reviewFilter,
-                    timers: s.timers,
-                    stopwatchEnabled: s.stopwatchEnabled,
-                    stopwatchRunning: s.stopwatchRunning,
-                    stopwatchSec: s.stopwatchSec,
-                    stopwatchLaps: s.stopwatchLaps,
-                  },
-                },
-              });
-              const url = `${window.location.origin}/smart-solve-${subject}/exam-preview?share=${encodeURIComponent(id)}`;
-              await navigator.clipboard.writeText(url);
-              toast.success(aud === "student" ? "Student link copied!" : "Editor link copied!");
-            } catch (e: any) {
-              toast.error(e?.message ?? "Couldn't create share link");
-            } finally {
-              setCreatingShare(false);
-            }
-          }}
-        />
-      )}
+                });
+                const url = `${window.location.origin}/smart-solve-${subject}/exam-preview?share=${encodeURIComponent(id)}`;
+                await navigator.clipboard.writeText(url);
+                toast.success(aud === "student" ? "Student link copied!" : "Editor link copied!");
+              } catch (e: any) {
+                toast.error(e?.message ?? "Couldn't create share link");
+              } finally {
+                setCreatingShare(false);
+              }
+            }}
+          />
+        )}
 
-      <main className="exam-preview-paper max-w-4xl mx-auto px-2 sm:px-3 py-8 print:py-0 print:px-0 print:max-w-none">
-        {/* Cover */}
-        <motion.section
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="exam-preview-cover rounded-3xl border-2 border-border bg-card p-6 sm:p-8 print:shadow-none"
-        >
-          <div className="flex items-start gap-4">
-            {settings.schoolLogo && (
-              <img
-                src={settings.schoolLogo}
-                alt="School logo"
-                className="h-16 w-16 object-contain rounded-xl border bg-background p-1.5 shrink-0"
-              />
-            )}
-            <div className="min-w-0">
-              {settings.schoolName && (
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
-                  {settings.schoolName}
-                </p>
+        <main className="exam-preview-paper max-w-4xl mx-auto px-2 sm:px-3 py-8 print:py-0 print:px-0 print:max-w-none">
+          {/* Cover */}
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="exam-preview-cover rounded-3xl border-2 border-border bg-card p-6 sm:p-8 print:shadow-none"
+          >
+            <div className="flex items-start gap-4">
+              {settings.schoolLogo && (
+                <img
+                  src={settings.schoolLogo}
+                  alt="School logo"
+                  className="h-16 w-16 object-contain rounded-xl border bg-background p-1.5 shrink-0"
+                />
               )}
-              <h2 className="text-2xl sm:text-3xl font-bold mt-1">{settings.title}</h2>
-              <p className="text-sm text-muted-foreground capitalize">
-                {settings.docType} · {sessionQuestions.length} questions · {marks} marks
-              </p>
-              {settings.teacherName && (
-                <p className="text-sm mt-1">
-                  <span className="text-muted-foreground">Teacher:</span>{" "}
-                  <span className="font-bold">{settings.teacherName}</span>
-                </p>
-              )}
-              {settings.deadline && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-primary/10 text-primary border border-primary/30">
-                    Deadline: {new Date(settings.deadline).toLocaleString()}
-                  </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border",
-                      settings.allowAfterDeadline
-                        ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
-                        : "bg-destructive/10 text-destructive border-destructive/30",
-                    )}
-                  >
-                    {settings.allowAfterDeadline
-                      ? settings.latePenalty > 0
-                        ? `Late: −${settings.latePenalty} marks`
-                        : "Late submissions allowed"
-                      : "No late submissions"}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Student fields */}
-          {(settings.studentFields.askName ||
-            settings.studentFields.askCenter ||
-            settings.studentFields.askSignature ||
-            settings.studentFields.askDate) && (
-            <div className="mt-6 grid sm:grid-cols-2 gap-3">
-              {settings.studentFields.askName && (
-                <FieldRow label="Name">
-                  <input
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    disabled={readOnly}
-                    className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
-                  />
-                </FieldRow>
-              )}
-              {settings.studentFields.askCenter && (
-                <FieldRow label="Center #">
-                  <input
-                    value={centerNumber}
-                    onChange={(e) => setCenterNumber(e.target.value)}
-                    disabled={readOnly}
-                    className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
-                  />
-                </FieldRow>
-              )}
-              {settings.studentFields.askDate && (
-                <FieldRow label="Date">
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    disabled={readOnly}
-                    className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
-                  />
-                </FieldRow>
-              )}
-              {settings.studentFields.askSignature && (
-                <FieldRow label="Signature">
-                  <input
-                    value={signature}
-                    onChange={(e) => setSignature(e.target.value)}
-                    disabled={readOnly}
-                    placeholder="Sign here"
-                    className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 italic"
-                    style={{ fontFamily: "'Brush Script MT', cursive" }}
-                  />
-                </FieldRow>
-              )}
-            </div>
-          )}
-
-          {(() => {
-            const introRich = resolveRichOrLegacy(settings.introRich, settings.intro);
-            if (!introRich) return null;
-            return (
-              <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20">
-                <p className="text-xs uppercase tracking-widest font-bold text-primary mb-1">
-                  Introduction
-                </p>
-                <RichTextView rich={introRich} className="text-sm leading-relaxed" />
-              </div>
-            );
-          })()}
-          {(() => {
-            const instrRich = resolveRichOrLegacy(settings.instructionsRich, settings.instructions);
-            if (!instrRich) return null;
-            return (
-              <div className="mt-3 p-4 rounded-2xl bg-muted border border-border">
-                <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1">
-                  Instructions
-                </p>
-                <RichTextView rich={instrRich} className="text-sm leading-relaxed" />
-              </div>
-            );
-          })()}
-
-          {/* Overall mark + feedback scale */}
-          {(settings.overallMark.enabled || settings.feedbackScale.enabled) && (
-            <div className="mt-6 grid sm:grid-cols-2 gap-3">
-              {settings.overallMark.enabled && (
-                <div className="p-4 rounded-2xl border-2 border-border bg-background">
-                  <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">
-                    Overall mark
+              <div className="min-w-0">
+                {settings.schoolName && (
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+                    {settings.schoolName}
                   </p>
-                  <div className="flex items-end gap-1">
+                )}
+                <h2 className="text-2xl sm:text-3xl font-bold mt-1">{settings.title}</h2>
+                <p className="text-sm text-muted-foreground capitalize">
+                  {settings.docType} · {sessionQuestions.length} questions · {marks} marks
+                </p>
+                {settings.teacherName && (
+                  <p className="text-sm mt-1">
+                    <span className="text-muted-foreground">Teacher:</span>{" "}
+                    <span className="font-bold">{settings.teacherName}</span>
+                  </p>
+                )}
+                {settings.deadline && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-primary/10 text-primary border border-primary/30">
+                      Deadline: {new Date(settings.deadline).toLocaleString()}
+                    </span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold border",
+                        settings.allowAfterDeadline
+                          ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
+                          : "bg-destructive/10 text-destructive border-destructive/30",
+                      )}
+                    >
+                      {settings.allowAfterDeadline
+                        ? settings.latePenalty > 0
+                          ? `Late: −${settings.latePenalty} marks`
+                          : "Late submissions allowed"
+                        : "No late submissions"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Student fields */}
+            {(settings.studentFields.askName ||
+              settings.studentFields.askCenter ||
+              settings.studentFields.askSignature ||
+              settings.studentFields.askDate) && (
+              <div className="mt-6 grid sm:grid-cols-2 gap-3">
+                {settings.studentFields.askName && (
+                  <FieldRow label="Name">
                     <input
-                      type="number"
-                      min={0}
-                      max={settings.overallMark.total}
-                      value={overallEarned}
-                      onChange={(e) => setOverallEarned(e.target.value)}
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
                       disabled={readOnly}
-                      placeholder="—"
-                      className="w-20 text-3xl font-bold bg-transparent border-b-2 border-border focus:border-primary outline-none"
+                      className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
                     />
-                    <span className="text-2xl font-bold text-muted-foreground">
-                      / {settings.overallMark.total}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {settings.feedbackScale.enabled && (
-                <div className="p-4 rounded-2xl border-2 border-border bg-background">
-                  <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">
-                    Feedback
+                  </FieldRow>
+                )}
+                {settings.studentFields.askCenter && (
+                  <FieldRow label="Center #">
+                    <input
+                      value={centerNumber}
+                      onChange={(e) => setCenterNumber(e.target.value)}
+                      disabled={readOnly}
+                      className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
+                    />
+                  </FieldRow>
+                )}
+                {settings.studentFields.askDate && (
+                  <FieldRow label="Date">
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      disabled={readOnly}
+                      className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 font-bold"
+                    />
+                  </FieldRow>
+                )}
+                {settings.studentFields.askSignature && (
+                  <FieldRow label="Signature">
+                    <input
+                      value={signature}
+                      onChange={(e) => setSignature(e.target.value)}
+                      disabled={readOnly}
+                      placeholder="Sign here"
+                      className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-1 italic"
+                      style={{ fontFamily: "'Brush Script MT', cursive" }}
+                    />
+                  </FieldRow>
+                )}
+              </div>
+            )}
+
+            {(() => {
+              const introRich = resolveRichOrLegacy(settings.introRich, settings.intro);
+              if (!introRich) return null;
+              return (
+                <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                  <p className="text-xs uppercase tracking-widest font-bold text-primary mb-1">
+                    Introduction
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {settings.feedbackScale.labels.map((l, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setFeedbackPick(i)}
-                        disabled={readOnly}
-                        className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-bold border-2 transition",
-                          feedbackPick === i
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card border-border hover:border-primary/40",
-                        )}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
+                  <RichTextView rich={introRich} className="text-sm leading-relaxed" />
                 </div>
-              )}
-            </div>
-          )}
-        </motion.section>
+              );
+            })()}
+            {(() => {
+              const instrRich = resolveRichOrLegacy(
+                settings.instructionsRich,
+                settings.instructions,
+              );
+              if (!instrRich) return null;
+              return (
+                <div className="mt-3 p-4 rounded-2xl bg-muted border border-border">
+                  <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1">
+                    Instructions
+                  </p>
+                  <RichTextView rich={instrRich} className="text-sm leading-relaxed" />
+                </div>
+              );
+            })()}
 
-        {/* Question pages */}
-        <div>
-          {pages.map((pageItems, pIdx) => {
-            // global running question index across pages
-            const startQIdx = pages
-              .slice(0, pIdx)
-              .reduce((n, p) => n + p.filter((i) => i.kind === "question").length, 0);
-            const qOnPage = pageItems.filter((i) => i.kind === "question").length;
-            let qOffset = 0;
-            return (
-              <section key={pIdx} className="exam-preview-page mt-8 space-y-5">
-                {/* Page header */}
-                <div className="hidden">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {settings.schoolLogo && (
-                      <img
-                        src={settings.schoolLogo}
-                        alt=""
-                        className="h-6 w-6 object-contain rounded shrink-0"
+            {/* Overall mark + feedback scale */}
+            {(settings.overallMark.enabled || settings.feedbackScale.enabled) && (
+              <div className="mt-6 grid sm:grid-cols-2 gap-3">
+                {settings.overallMark.enabled && (
+                  <div className="p-4 rounded-2xl border-2 border-border bg-background">
+                    <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">
+                      Overall mark
+                    </p>
+                    <div className="flex items-end gap-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={settings.overallMark.total}
+                        value={overallEarned}
+                        onChange={(e) => setOverallEarned(e.target.value)}
+                        disabled={readOnly}
+                        placeholder="—"
+                        className="w-20 text-3xl font-bold bg-transparent border-b-2 border-border focus:border-primary outline-none"
                       />
-                    )}
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">
-                      {settings.schoolName || settings.title}
+                      <span className="text-2xl font-bold text-muted-foreground">
+                        / {settings.overallMark.total}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {settings.feedbackScale.enabled && (
+                  <div className="p-4 rounded-2xl border-2 border-border bg-background">
+                    <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">
+                      Feedback
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {settings.feedbackScale.labels.map((l, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setFeedbackPick(i)}
+                          disabled={readOnly}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-bold border-2 transition",
+                            feedbackPick === i
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-card border-border hover:border-primary/40",
+                          )}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.section>
+
+          {/* Question pages */}
+          <div>
+            {pages.map((pageItems, pIdx) => {
+              // global running question index across pages
+              const startQIdx = pages
+                .slice(0, pIdx)
+                .reduce((n, p) => n + p.filter((i) => i.kind === "question").length, 0);
+              const qOnPage = pageItems.filter((i) => i.kind === "question").length;
+              let qOffset = 0;
+              return (
+                <section key={pIdx} className="exam-preview-page mt-8 space-y-5">
+                  {/* Page header */}
+                  <div className="hidden">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {settings.schoolLogo && (
+                        <img
+                          src={settings.schoolLogo}
+                          alt=""
+                          className="h-6 w-6 object-contain rounded shrink-0"
+                        />
+                      )}
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">
+                        {settings.schoolName || settings.title}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">
+                      Page {pIdx + 1} / {pages.length}
                     </span>
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">
-                    Page {pIdx + 1} / {pages.length}
-                  </span>
-                </div>
 
-                <div className="exam-preview-question-list space-y-6">
-                  {pageItems.map((item) => {
-                    if (item.kind === "note") {
+                  <div className="exam-preview-question-list space-y-6">
+                    {pageItems.map((item) => {
+                      if (item.kind === "note") {
+                        return (
+                          <div
+                            key={item.id}
+                            className="rounded-xl border-2 border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm whitespace-pre-wrap"
+                          >
+                            {item.text}
+                          </div>
+                        );
+                      }
+                      if (item.kind === "divider") {
+                        return (
+                          <div
+                            key={item.id}
+                            className="h-1 rounded-full"
+                            style={{ background: item.color }}
+                          />
+                        );
+                      }
+                      const idx = startQIdx + qOffset++;
                       return (
-                        <div
+                        <QuestionView
                           key={item.id}
-                          className="rounded-xl border-2 border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm whitespace-pre-wrap"
-                        >
-                          {item.text}
-                        </div>
-                      );
-                    }
-                    if (item.kind === "divider") {
-                      return (
-                        <div
-                          key={item.id}
-                          className="h-1 rounded-full"
-                          style={{ background: item.color }}
+                          question={item.question}
+                          index={idx}
+                          inlineLabel={
+                            settings.showQuestionHeaders === false ? `${idx + 1}.` : undefined
+                          }
                         />
                       );
-                    }
-                    const idx = startQIdx + qOffset++;
-                    return (
-                      <QuestionView
-                        key={item.id}
-                        question={item.question}
-                        index={idx}
-                        inlineLabel={
-                          settings.showQuestionHeaders === false ? `${idx + 1}.` : undefined
-                        }
-                      />
-                    );
-                  })}
-                </div>
+                    })}
+                  </div>
 
-                {/* Page footer */}
-                <div className="hidden">
-                  <span>{settings.title}</span>
-                  <span>
-                    {qOnPage} question{qOnPage === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </section>
-            );
-          })}
-        </div>
+                  {/* Page footer */}
+                  <div className="hidden">
+                    <span>{settings.title}</span>
+                    <span>
+                      {qOnPage} question{qOnPage === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                </section>
+              );
+            })}
+          </div>
 
-        {/* Footer spacer so sticky button never covers the last question */}
-        <div className="h-28 sm:h-32 print:hidden" aria-hidden />
-      </main>
+          {/* Footer spacer so sticky button never covers the last question */}
+          <div className="h-28 sm:h-32 print:hidden" aria-hidden />
+        </main>
 
-      {/* Sticky download bar — gradient mask so content fades behind it */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 print:hidden pointer-events-none">
-        <div className="h-24 bg-gradient-to-t from-background via-background/90 to-transparent" />
-        <div className="bg-background/95 backdrop-blur border-t border-border/60 pointer-events-auto">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex gap-2">
-            <Button
-              onClick={handleDownloadPdf}
-              disabled={exporting}
-              size="lg"
-              className="flex-1 h-14 text-base font-bold shadow-xl shadow-primary/20"
-            >
-              <LuDownload className="mr-2" size={18} />
-              {exporting ? "Generating PDF…" : "Download PDF"}
-            </Button>
-            <Button
-              onClick={handlePrint}
-              size="lg"
-              variant="outline"
-              className="h-14 px-4 font-bold"
-              title="Print"
-            >
-              <LuPrinter size={18} />
-            </Button>
+        {/* Sticky download bar — gradient mask so content fades behind it */}
+        <div className="fixed bottom-0 left-0 right-0 z-30 print:hidden pointer-events-none">
+          <div className="h-24 bg-gradient-to-t from-background via-background/90 to-transparent" />
+          <div className="bg-background/95 backdrop-blur border-t border-border/60 pointer-events-auto">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex gap-2">
+              <Button
+                onClick={handleDownloadPdf}
+                disabled={exporting}
+                size="lg"
+                className="flex-1 h-14 text-base font-bold shadow-xl shadow-primary/20"
+              >
+                <LuDownload className="mr-2" size={18} />
+                {exporting ? "Generating PDF…" : "Download PDF"}
+              </Button>
+              <Button
+                onClick={handlePrint}
+                size="lg"
+                variant="outline"
+                className="h-14 px-4 font-bold"
+                title="Print"
+              >
+                <LuPrinter size={18} />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <BuilderSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+        <BuilderSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       </div>
     </PaperSessionProvider>
   );

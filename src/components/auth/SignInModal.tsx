@@ -95,7 +95,7 @@ export function SignInModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain"
+          className="fixed inset-0 z-[10100] overflow-y-auto overscroll-contain"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {/* Backdrop (click to close) */}

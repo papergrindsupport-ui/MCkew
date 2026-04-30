@@ -1,7 +1,9 @@
 // Custom dropdown — built from scratch (no Radix). Used everywhere in admin.
 // Single-select with icon, label, value list, search, and keyboard navigation.
+// Lists render in a fixed portal so ancestor overflow:auto does not clip them.
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { LuChevronDown, LuCheck, LuSearch } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import { cn } from "@/lib/utils";
@@ -41,7 +43,8 @@ export function Dropdown<V extends string | number>({
   const [filter, setFilter] = useState("");
   const [highlight, setHighlight] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ top: number; left: number; width: number } | null>(null);
   const id = useId();
 
   const current = options.find((o) => o.value === value);
@@ -49,17 +52,39 @@ export function Dropdown<V extends string | number>({
     ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))
     : options;
 
-  // Click outside
+  function measure() {
+    const el = wrapRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setBox({ top: r.bottom + 6, left: r.left, width: r.width });
+  }
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setBox(null);
+      return;
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open]);
+
+  // Click outside (trigger OR portal panel)
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t) || panelRef.current?.contains(t)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  // Reset highlight when reopening
   useEffect(() => {
     if (open) {
       setHighlight(
@@ -68,12 +93,10 @@ export function Dropdown<V extends string | number>({
           filtered.findIndex((o) => o.value === value),
         ),
       );
-      setTimeout(
-        () =>
-          listRef.current
-            ?.querySelector<HTMLElement>("[data-active=true]")
-            ?.scrollIntoView({ block: "nearest" }),
-        0,
+      requestAnimationFrame(() =>
+        panelRef.current
+          ?.querySelector<HTMLElement>("[data-active=true]")
+          ?.scrollIntoView({ block: "nearest" }),
       );
     } else {
       setFilter("");
@@ -110,6 +133,75 @@ export function Dropdown<V extends string | number>({
     }
   }
 
+  const list =
+    open &&
+    box &&
+    typeof document !== "undefined" &&
+    createPortal(
+      <div
+        id={id}
+        role="listbox"
+        ref={panelRef}
+        style={{
+          position: "fixed",
+          top: box.top,
+          left: box.left,
+          width: box.width,
+          zIndex: 10050,
+        }}
+        className="rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100"
+      >
+        {searchable && (
+          <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-border bg-muted/40">
+            <LuSearch size={12} className="text-muted-foreground" />
+            <input
+              autoFocus
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setHighlight(0);
+              }}
+              placeholder="Search…"
+              className="flex-1 bg-transparent border-0 outline-none text-xs"
+            />
+          </div>
+        )}
+        <div className="max-h-64 overflow-y-auto py-1">
+          {filtered.length === 0 && (
+            <div className="px-3 py-2 text-xs text-muted-foreground text-center">No matches</div>
+          )}
+          {filtered.map((o, i) => {
+            const active = i === highlight;
+            const selected = o.value === value;
+            const ItemIcon = o.icon;
+            return (
+              <button
+                key={String(o.value)}
+                data-active={active}
+                role="option"
+                aria-selected={selected}
+                disabled={o.disabled}
+                onMouseEnter={() => setHighlight(i)}
+                onClick={() => pick(o)}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2.5 py-1.5 text-left text-xs",
+                  active && "bg-primary/10 text-primary",
+                  selected && "font-semibold",
+                  o.disabled && "opacity-50 cursor-not-allowed",
+                )}
+              >
+                {ItemIcon && <ItemIcon size={13} className="shrink-0" />}
+                <span className="flex-1 truncate">{o.label}</span>
+                {o.hint && <span className="text-[10px] text-muted-foreground">{o.hint}</span>}
+                {selected && <LuCheck size={12} className="text-primary shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>,
+      document.body,
+    );
+
   return (
     <div ref={wrapRef} className={cn("relative inline-block w-full", className)} onKeyDown={onKey}>
       <button
@@ -142,62 +234,7 @@ export function Dropdown<V extends string | number>({
         />
       </button>
 
-      {open && (
-        <div
-          id={id}
-          role="listbox"
-          ref={listRef}
-          className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100"
-        >
-          {searchable && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-border bg-muted/40">
-              <LuSearch size={12} className="text-muted-foreground" />
-              <input
-                autoFocus
-                value={filter}
-                onChange={(e) => {
-                  setFilter(e.target.value);
-                  setHighlight(0);
-                }}
-                placeholder="Search…"
-                className="flex-1 bg-transparent border-0 outline-none text-xs"
-              />
-            </div>
-          )}
-          <div className="max-h-64 overflow-y-auto py-1">
-            {filtered.length === 0 && (
-              <div className="px-3 py-2 text-xs text-muted-foreground text-center">No matches</div>
-            )}
-            {filtered.map((o, i) => {
-              const active = i === highlight;
-              const selected = o.value === value;
-              const ItemIcon = o.icon;
-              return (
-                <button
-                  key={String(o.value)}
-                  data-active={active}
-                  role="option"
-                  aria-selected={selected}
-                  disabled={o.disabled}
-                  onMouseEnter={() => setHighlight(i)}
-                  onClick={() => pick(o)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-2.5 py-1.5 text-left text-xs",
-                    active && "bg-primary/10 text-primary",
-                    selected && "font-semibold",
-                    o.disabled && "opacity-50 cursor-not-allowed",
-                  )}
-                >
-                  {ItemIcon && <ItemIcon size={13} className="shrink-0" />}
-                  <span className="flex-1 truncate">{o.label}</span>
-                  {o.hint && <span className="text-[10px] text-muted-foreground">{o.hint}</span>}
-                  {selected && <LuCheck size={12} className="text-primary shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {list}
     </div>
   );
 }

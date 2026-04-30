@@ -58,7 +58,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <span className="w-4 h-4 border-2 border-current border-r-0 rounded-full animate-spin" />
           </span>
         )}
-        <span className={cn(loading && "invisible")}>{children}</span>
+        <span
+          className={cn(
+            "inline-flex flex-row flex-nowrap items-center justify-center gap-2",
+            loading && "invisible",
+          )}
+        >
+          {children}
+        </span>
       </Comp>
     );
   },

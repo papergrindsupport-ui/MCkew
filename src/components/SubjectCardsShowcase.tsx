@@ -276,7 +276,7 @@ function SubjectCardFrame({
   const isBoring = useVibeStore((s) => s.vibe) === "boring";
 
   return (
-    <Link to={href} className="block w-full max-w-[380px] self-start">
+    <Link to={href} preload={false} className="block w-full max-w-[380px] self-start">
       <motion.div
         className="group rounded-[2rem] border-[3px] border-border bg-card/80 p-4 sm:p-5 shadow-[6px_6px_0_hsl(var(--border))] backdrop-blur-sm"
         whileHover={isBoring ? undefined : { y: -8, rotate: -1 }}
@@ -317,9 +317,11 @@ export default function SubjectCardsShowcase() {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
-        transition={isBoring ? { duration: 0.2 } : { duration: 0.45, type: "spring", stiffness: 120 }}
+        transition={
+          isBoring ? { duration: 0.2 } : { duration: 0.45, type: "spring", stiffness: 120 }
+        }
       >
-        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">
+        <div className="subject-card-grid grid items-start gap-6">
           <SubjectCardFrame
             href="/smart-solve-chem"
             description="Tackle IGCSE Chemistry past papers with instant smart marking."

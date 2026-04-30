@@ -23,6 +23,7 @@ import { RichTextEditor } from "./PencilEditor";
 import { TableBuilder, emptyTable } from "./TableBuilder";
 import { GraphBuilder, emptyChart } from "./GraphBuilder";
 import { Dropdown } from "@/admin/ui/Dropdown";
+import { ImageUploadButton } from "@/admin/ImageUploadButton";
 import { cn } from "@/lib/utils";
 
 const emptyRich = (): RichText => [{ kind: "p", runs: [{ type: "text", text: "" }] }];
@@ -71,11 +72,18 @@ export function ImageOptionsEditor({
               })
             }
           >
-            <Input
-              placeholder="Image URL"
-              value={o.src}
-              onChange={(e) => setOpt(i, { src: e.target.value })}
-            />
+            <div className="space-y-2">
+              <ImageUploadButton
+                compact
+                label={`Upload option ${o.letter}`}
+                onUploaded={(url) => setOpt(i, { src: url, alt: o.alt ?? "" })}
+              />
+              <Input
+                placeholder="Or paste image URL"
+                value={o.src}
+                onChange={(e) => setOpt(i, { src: e.target.value })}
+              />
+            </div>
             <Input
               placeholder="Alt text"
               value={o.alt}
@@ -556,11 +564,17 @@ export function ImagePositionedEditor({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <Input
-          placeholder="Image URL"
-          value={value.src}
-          onChange={(e) => onChange({ ...value, src: e.target.value })}
-        />
+        <div className="md:col-span-2 space-y-2">
+          <ImageUploadButton
+            label="Upload background image"
+            onUploaded={(url) => onChange({ ...value, src: url, alt: value.alt ?? "" })}
+          />
+          <Input
+            placeholder="Or paste image URL"
+            value={value.src}
+            onChange={(e) => onChange({ ...value, src: e.target.value })}
+          />
+        </div>
         <Input
           placeholder="Alt text"
           value={value.alt}

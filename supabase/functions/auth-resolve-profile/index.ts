@@ -112,6 +112,12 @@ function dicebearUrl(seed: string): string {
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(seed)}`;
 }
 
+/** Random DiceBear thumbs avatar unique per signup (anon id stays human-chosen). */
+function randomDicebearThumbUrl(): string {
+  const seed = crypto.randomUUID();
+  return dicebearUrl(seed);
+}
+
 // ----------------------------------------------------------------------
 // Handlers
 // ----------------------------------------------------------------------
@@ -179,7 +185,7 @@ async function handleAnonCreate(body: {
       account_type: "anonymous",
       public_id: anonId,
       display_name: anonId,
-      image_url: dicebearUrl(anonId),
+      image_url: randomDicebearThumbUrl(),
       anon_password_hash: passwordHash,
       secret_questions: body.secretQuestions ?? [],
     })

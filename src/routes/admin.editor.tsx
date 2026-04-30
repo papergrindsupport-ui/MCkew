@@ -1,6 +1,5 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { useUser } from "@clerk/clerk-react";
 import {
   LuPlus,
   LuPencil,
@@ -41,20 +40,12 @@ import {
 } from "@/admin/store";
 import { Dropdown } from "@/admin/ui/Dropdown";
 import { cn } from "@/lib/utils";
-import { useAccountStore } from "@/stores/useAccountStore";
 import toast from "react-hot-toast";
+import { useIsAdminGate } from "@/hooks/useIsAdmin";
 
 export const Route = createFileRoute("/admin/editor")({
   component: EditorIndex,
 });
-
-function parseAdminUserIds(raw: string | undefined): string[] {
-  if (!raw) return [];
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 function useAdminSnapshot<T>(read: () => T): T {
   return useSyncExternalStore(subscribeAdminStore, read, read);
@@ -62,22 +53,8 @@ function useAdminSnapshot<T>(read: () => T): T {
 
 function EditorIndex() {
   const navigate = useNavigate();
-  const { user, isLoaded: clerkLoaded } = useUser();
-  const profile = useAccountStore((s) => s.profile);
-  const accountLoading = useAccountStore((s) => s.loading);
+  const { allowed, ready: gateReady } = useIsAdminGate();
   const [countdown, setCountdown] = useState(5);
-  const adminIds = useMemo(
-    () => parseAdminUserIds(import.meta.env.VITE_ADMIN_USERIDS as string | undefined),
-    [],
-  );
-  const allowed = useMemo(() => {
-    const currentIds = [user?.id, profile?.public_id, profile?.id]
-      .map((v) => (v ?? "").trim())
-      .filter(Boolean);
-    if (adminIds.length === 0) return false;
-    return currentIds.some((id) => adminIds.includes(id));
-  }, [adminIds, user?.id, profile?.public_id, profile?.id]);
-  const gateReady = clerkLoaded && !accountLoading;
 
   useEffect(() => {
     if (!gateReady || allowed) return;

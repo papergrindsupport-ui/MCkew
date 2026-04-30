@@ -1,7 +1,7 @@
 // Public profile page at /profile/{username}.
 // Beautiful, smooth, tabbed, micro-interactive, respects visibility map.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,18 +32,17 @@ import type { LucideIcon } from "lucide-react";
 import { countries } from "country-codes-flags-phone-codes";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  avatarUrlFor,
-  updateCurrentUser,
-  useCurrentUser,
-  CURRENT_USERNAME_CONST,
-} from "@/lib/profileStore";
+import { avatarUrlFor, updateCurrentUser, useCurrentUser } from "@/lib/profileStore";
 import { usePublicProfileLookup } from "@/lib/publicProfileLookup";
 import { EXAM_SESSIONS, type Subject } from "@/data/profileTypes";
 import { FlairChip } from "@/components/profile/FlairBuilder";
 import UsersListModal from "@/components/profile/UsersListModal";
 import toast from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useApi } from "@/integrations/account/useApi";
+import { GiftDrawer } from "@/components/gifts/GiftDrawer";
+import { EnvRoleBadges } from "@/components/profile/EnvRoleBadges";
+import { roleFlagsForCandidateIds } from "@/lib/envRoleBadges";
 
 export const Route = createFileRoute("/profile/$username")({
   component: PublicProfile,
@@ -65,11 +64,41 @@ const SUBJECT_META: Record<Subject, { label: string; Icon: LucideIcon; color: st
 
 function PublicProfile() {
   const { username } = Route.useParams();
-  const { user, loading, notFound, accountType } = usePublicProfileLookup(username);
+  const {
+    user,
+    loading,
+    notFound,
+    accountType,
+    publicId,
+    followerCount,
+    followingCount,
+    viewerFollows,
+    isMe: serverIsMe,
+    refresh,
+  } = usePublicProfileLookup(username);
+  const api = useApi();
   const me = useCurrentUser();
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
   const [tab, setTab] = useState("about");
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [optimisticFollowing, setOptimisticFollowing] = useState<boolean | null>(null);
+  const [optimisticFollowerCount, setOptimisticFollowerCount] = useState<number | null>(null);
+  const isFollowingServer = optimisticFollowing ?? viewerFollows;
+  const liveFollowerCount = optimisticFollowerCount ?? followerCount;
+
+  const envRoleFlags = useMemo(
+    () =>
+      roleFlagsForCandidateIds([
+        user?.syncIds?.clerkUserId,
+        user?.syncIds?.profileUuid,
+        user?.syncIds?.publicId,
+        publicId,
+        user?.username,
+      ]),
+    [user?.syncIds, user?.username, publicId],
+  );
 
   if (!user) {
     return (
@@ -120,9 +149,9 @@ function PublicProfile() {
     );
   }
 
-  const isMe = user.username === CURRENT_USERNAME_CONST;
+  const isMe = serverIsMe;
   const v = user.visibility;
-  const isFollowing = me.following.includes(user.username);
+  const isFollowing = isFollowingServer;
 
   if (!user.isPublic && !isMe) {
     return (
@@ -151,14 +180,33 @@ function PublicProfile() {
     return visible ? value : null;
   }
 
-  function toggleFollow() {
-    if (isMe) return;
-    if (isFollowing) {
-      updateCurrentUser({ following: me.following.filter((u) => u !== user!.username) });
-      toast(`Unfollowed @${user!.username}`);
-    } else {
-      updateCurrentUser({ following: [...me.following, user!.username] });
-      toast.success(`Following @${user!.username}`);
+  async function toggleFollow() {
+    if (isMe || !publicId || followBusy) return;
+    const wasFollowing = isFollowing;
+    setFollowBusy(true);
+    setOptimisticFollowing(!wasFollowing);
+    setOptimisticFollowerCount(liveFollowerCount + (wasFollowing ? -1 : 1));
+    try {
+      if (wasFollowing) await api.unfollowUser(publicId);
+      else await api.followUser(publicId);
+      // Mirror to local seed-store list for the legacy followers UI.
+      if (user) {
+        if (wasFollowing) {
+          updateCurrentUser({ following: me.following.filter((u) => u !== user.username) });
+          toast(`Unfollowed @${user.username}`);
+        } else {
+          updateCurrentUser({ following: [...me.following, user.username] });
+          toast.success(`Following @${user.username}`);
+        }
+      }
+    } catch (e: any) {
+      setOptimisticFollowing(wasFollowing);
+      setOptimisticFollowerCount(liveFollowerCount);
+      const msg: string = e?.error || "Could not update follow";
+      if (e?.status === 401) toast.error("Sign in to follow users.");
+      else toast.error(msg);
+    } finally {
+      setFollowBusy(false);
     }
   }
 
@@ -201,20 +249,30 @@ function PublicProfile() {
           >
             <ArrowLeft size={14} /> Home
           </Link>
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("Link copied");
-              } catch {
-                toast.error("Couldn't copy");
-              }
-            }}
-            className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border-2 border-border bg-card/80 backdrop-blur text-sm font-bold hover:bg-card"
-          >
-            <Share2 size={14} /> Share
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success("Link copied");
+                } catch {
+                  toast.error("Couldn't copy");
+                }
+              }}
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border-2 border-border bg-card/80 backdrop-blur text-sm font-bold hover:bg-card"
+            >
+              <Share2 size={14} /> Share
+            </button>
+            {isMe && (
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border-2 border-primary/50 bg-primary/10 text-primary text-sm font-bold hover:bg-primary/15"
+              >
+                <Pencil size={14} /> Edit
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -240,6 +298,7 @@ function PublicProfile() {
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground truncate">
                   {displayName}
                 </h1>
+                <EnvRoleBadges flags={envRoleFlags} />
                 {showRole && (
                   <motion.span
                     whileHover={{ y: -2 }}
@@ -263,20 +322,14 @@ function PublicProfile() {
             </div>
 
             <div className="flex flex-col gap-2 sm:items-end">
-              {isMe ? (
-                <Link
-                  to="/profile"
-                  className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
-                >
-                  <Pencil size={14} /> Edit profile
-                </Link>
-              ) : (
+              {!isMe && (
                 <div className="flex gap-2">
                   <motion.button
                     whileTap={{ scale: 0.94 }}
                     whileHover={{ y: -2 }}
                     onClick={toggleFollow}
-                    className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-bold transition-colors ${
+                    disabled={followBusy || !publicId}
+                    className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
                       isFollowing
                         ? "bg-card border-2 border-border text-foreground hover:bg-muted"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -295,8 +348,9 @@ function PublicProfile() {
                   <motion.button
                     whileTap={{ scale: 0.94 }}
                     whileHover={{ rotate: -8 }}
-                    onClick={() => toast.success(`Gift sent to @${user.username}`)}
-                    className="inline-flex items-center justify-center h-10 w-10 rounded-xl border-2 border-border bg-card hover:bg-card-pink"
+                    onClick={() => publicId && setGiftOpen(true)}
+                    disabled={!publicId}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-xl border-2 border-border bg-card hover:bg-card-pink disabled:opacity-50"
                     aria-label="Send gift"
                     title="Send a gift"
                   >
@@ -311,7 +365,7 @@ function PublicProfile() {
                   onClick={() => setFollowersOpen(true)}
                   className="hover:text-primary"
                 >
-                  <span className="font-extrabold">{user.followers.length}</span>{" "}
+                  <span className="font-extrabold">{liveFollowerCount}</span>{" "}
                   <span className="text-muted-foreground">followers</span>
                 </button>
                 <button
@@ -319,7 +373,7 @@ function PublicProfile() {
                   onClick={() => setFollowingOpen(true)}
                   className="hover:text-primary"
                 >
-                  <span className="font-extrabold">{user.following.length}</span>{" "}
+                  <span className="font-extrabold">{followingCount}</span>{" "}
                   <span className="text-muted-foreground">following</span>
                 </button>
               </div>
@@ -578,6 +632,23 @@ function PublicProfile() {
         title="Following"
         usernames={user.following}
       />
+      {!isMe && (
+        <GiftDrawer
+          open={giftOpen}
+          onOpenChange={setGiftOpen}
+          recipient={
+            publicId
+              ? {
+                  publicId,
+                  username: user.username,
+                  displayName: user.displayName,
+                  imageUrl: user.profilePictureUrl ?? null,
+                }
+              : null
+          }
+          onSent={() => refresh()}
+        />
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { createApiClient, type ApiClient } from "@/lib/apiClient";
+import { getClerkJwtForApi } from "@/lib/getClerkApiJwt";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -567,7 +568,7 @@ export function PlannerTasksHydrator() {
       return;
     }
     const a = createApiClient({
-      getToken: isSignedIn ? () => getToken({ template: "supabase" }).catch(() => null) : undefined,
+      getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
       publicId: !isSignedIn ? profile.public_id : null,
     });
     _setPlannerApi(a);

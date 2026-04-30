@@ -21,13 +21,14 @@ import { useDailyChallengeStore } from "@/stores/useDailyChallengeStore";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useUpdateMyProfile } from "@/integrations/account/AccountProvider";
 import { createApiClient, type ApiClient } from "@/lib/apiClient";
+import { getClerkJwtForApi } from "@/lib/getClerkApiJwt";
 
 function useApiClient(): () => ApiClient {
   const { getToken, isSignedIn } = useAuth();
   const profile = useAccountStore((s) => s.profile);
   return () =>
     createApiClient({
-      getToken: isSignedIn ? () => getToken({ template: "supabase" }).catch(() => null) : undefined,
+      getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
       publicId: !isSignedIn ? (profile?.public_id ?? null) : null,
     });
 }

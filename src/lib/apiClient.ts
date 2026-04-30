@@ -54,6 +54,30 @@ export function createApiClient(opts: ApiClientOptions = {}) {
     return headers;
   }
 
+  function parseApiResponse(text: string, res: Response): Record<string, unknown> {
+    const ct = res.headers.get("content-type") || "";
+    const start = text.trimStart();
+    if (
+      start.startsWith("<!DOCTYPE") ||
+      start.startsWith("<!doctype") ||
+      start.startsWith("<html") ||
+      ct.includes("text/html")
+    ) {
+      return {
+        error:
+          `Server returned HTML (${res.status}) instead of JSON — usually a crashed API handler, SPA ` +
+          `fallback on the route, or missing server secrets in the deploy bundle (.env loaded at build via ` +
+          `vite.config). Restart dev after setting SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.`,
+      };
+    }
+    if (!text) return {};
+    try {
+      return JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      return { error: text.slice(0, 240) };
+    }
+  }
+
   async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const headers = await buildHeaders({ "Content-Type": "application/json" });
 
@@ -72,18 +96,14 @@ export function createApiClient(opts: ApiClientOptions = {}) {
           signal: timeoutSignal(30000),
         });
         const text = await res.text();
-        let data: any = {};
-        if (text) {
-          try {
-            data = JSON.parse(text);
-          } catch {
-            data = { error: text.slice(0, 200) };
-          }
-        }
+        const data = parseApiResponse(text, res);
         if (!res.ok) {
+          const errRaw = data.error;
+          const errMsg =
+            typeof errRaw === "string" ? errRaw : errRaw != null ? String(errRaw) : res.statusText;
           throw {
-            error: data.error || res.statusText,
-            issues: data.issues,
+            error: errMsg,
+            issues: data.issues as ApiError["issues"],
             status: res.status,
           } satisfies ApiError;
         }
@@ -293,12 +313,17 @@ export function createApiClient(opts: ApiClientOptions = {}) {
       request<{
         data: Array<{
           id: string;
+          profileUuid: string;
+          clerkUserId: string | null;
           username: string | null;
           displayName: string | null;
           imageUrl: string | null;
           bio: string | null;
           accountType: string;
           pencils: number;
+          followerCount: number;
+          viewerFollows: boolean;
+          isMe: boolean;
         }>;
       }>("GET", "/leaderboard"),
 
@@ -308,6 +333,7 @@ export function createApiClient(opts: ApiClientOptions = {}) {
         profile: {
           id: string;
           public_id: string;
+          clerk_user_id: string | null;
           username: string | null;
           display_name: string | null;
           email: string | null;
@@ -317,8 +343,72 @@ export function createApiClient(opts: ApiClientOptions = {}) {
           account_type: string;
           created_at: string;
           pencils: number;
+          followerCount: number;
+          followingCount: number;
+          viewerFollows: boolean;
+          isMe: boolean;
         };
       }>("GET", `/public-profile/${encodeURIComponent(username)}`),
+
+    // ---------- Follows ----------
+    followUser: (followee_public_id: string) =>
+      request<{ ok: true; following: true }>("POST", "/follow", { followee_public_id }),
+    unfollowUser: (followee_public_id: string) =>
+      request<{ ok: true; following: false }>("DELETE", "/follow", { followee_public_id }),
+    listFollowers: (publicId: string) =>
+      request<{
+        data: Array<{
+          id: string;
+          username: string | null;
+          displayName: string | null;
+          imageUrl: string | null;
+          bio: string | null;
+          accountType: string;
+        }>;
+      }>("GET", `/follows/${encodeURIComponent(publicId)}/list?dir=followers`),
+    listFollowing: (publicId: string) =>
+      request<{
+        data: Array<{
+          id: string;
+          username: string | null;
+          displayName: string | null;
+          imageUrl: string | null;
+          bio: string | null;
+          accountType: string;
+        }>;
+      }>("GET", `/follows/${encodeURIComponent(publicId)}/list?dir=following`),
+
+    // ---------- Gifts ----------
+    sendGift: (body: { recipient_public_id: string; gift_id: string; note?: string | null }) =>
+      request<{
+        ok: true;
+        giftId: string;
+        amount: number;
+        recipient: {
+          publicId: string;
+          username: string | null;
+          displayName: string | null;
+          imageUrl: string | null;
+        };
+      }>("POST", "/gifts", body),
+    listGifts: (dir: "received" | "sent" = "received") =>
+      request<{
+        data: Array<{
+          id: string;
+          amount: number;
+          message: string | null;
+          createdAt: string;
+          counterparty: {
+            publicId: string;
+            username: string | null;
+            displayName: string | null;
+            imageUrl: string | null;
+            accountType: string;
+          } | null;
+        }>;
+        totalAmount: number;
+        totalCount: number;
+      }>("GET", `/gifts?dir=${dir}`),
 
     // ---------- Admin: bootstrap + seed (idempotent) ----------
     initAdminAndSeed: () =>
@@ -354,9 +444,8 @@ export function createApiClient(opts: ApiClientOptions = {}) {
     deletePaper: (paperId: string) =>
       request<{ ok: true }>("DELETE", `/papers/${encodeURIComponent(paperId)}`),
 
-    // ---------- Uploads (not yet migrated) ----------
+    // ---------- Uploads (avatars: not yet on TanStack API; question images: UploadThing from admin UI) ----------
     uploadAvatar: (_file: File) => notImplemented("uploadAvatar"),
-    uploadQuestionImage: (_file: File) => notImplemented("uploadQuestionImage"),
 
     // ---------- Volunteer applications ----------
     listVolunteerApplications: () =>

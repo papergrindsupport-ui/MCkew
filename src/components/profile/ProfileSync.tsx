@@ -10,10 +10,19 @@
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useProfile, useUpdateMyProfile } from "@/integrations/account/AccountProvider";
-import { getCurrentUser, updateCurrentUser, useCurrentUser } from "@/lib/profileStore";
+import {
+  dicebearPngUrl,
+  getCurrentUser,
+  updateCurrentUser,
+  useCurrentUser,
+} from "@/lib/profileStore";
 
 /** Fields we sync between local UserProfile and the Cloud profile. */
 const SYNCED_KEYS = ["display_name", "username", "email", "phone", "bio", "image_url"] as const;
+
+function isDicebearUrl(url: string | null | undefined): boolean {
+  return !!url && url.includes("api.dicebear.com");
+}
 
 export function ProfileSync() {
   const { profile } = useProfile();
@@ -42,17 +51,19 @@ export function ProfileSync() {
 
     const phone = profile.phone || clerkUser?.primaryPhoneNumber?.phoneNumber || me.phone;
 
-    const imageUrl = profile.image_url || clerkUser?.imageUrl || undefined;
+    const rawImage = profile.image_url || clerkUser?.imageUrl || undefined;
     const bio = profile.bio ?? me.bio;
 
+    // Dicebear URLs = “auto avatar”; anything else (upload/external) = custom picture.
+    const autoFromDb = isDicebearUrl(rawImage ?? undefined);
     updateCurrentUser({
       displayName,
       username,
       email,
       phone,
       bio,
-      hasProfilePicture: Boolean(imageUrl),
-      profilePictureUrl: imageUrl,
+      hasProfilePicture: Boolean(rawImage) && !autoFromDb,
+      profilePictureUrl: autoFromDb ? undefined : rawImage,
     });
   }, [profile, clerkUser]);
 
@@ -71,7 +82,9 @@ export function ProfileSync() {
       email: me.email,
       phone: me.phone,
       bio: me.bio,
-      image_url: me.hasProfilePicture ? (me.profilePictureUrl ?? null) : null,
+      image_url: me.hasProfilePicture
+        ? (me.profilePictureUrl ?? null)
+        : dicebearPngUrl(me.username),
     };
     const key = JSON.stringify(snapshot);
     if (key === lastPushed.current) return;
@@ -86,7 +99,7 @@ export function ProfileSync() {
             : k === "image_url"
               ? me.hasProfilePicture
                 ? (me.profilePictureUrl ?? null)
-                : null
+                : dicebearPngUrl(me.username)
               : (me as unknown as Record<string, unknown>)[k];
         const cloudVal = (profile as unknown as Record<string, unknown>)[k];
         if (localVal !== cloudVal) patch[k] = localVal;
@@ -111,6 +124,33 @@ export function ProfileSync() {
       if (pushTimer.current) clearTimeout(pushTimer.current);
     };
   }, [me, profile, updateMyProfile]);
+
+  // When using auto avatar, mirror the same PNG into Clerk’s profile image.
+  const lastDicebearSync = useRef<string | null>(null);
+  useEffect(() => {
+    if (!clerkUser || me.hasProfilePicture) return;
+    const url = dicebearPngUrl(me.username);
+    if (lastDicebearSync.current === url) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(String(res.status));
+        const blob = await res.blob();
+        const file = new File([blob], "avatar.png", {
+          type: blob.type && blob.type !== "application/octet-stream" ? blob.type : "image/png",
+        });
+        await clerkUser.setProfileImage({ file });
+        if (!cancelled) lastDicebearSync.current = url;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("[profile] Clerk auto-avatar sync failed:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [clerkUser?.id, me.hasProfilePicture, me.username]);
 
   return null;
 }

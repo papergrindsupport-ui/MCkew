@@ -28,6 +28,7 @@ import { TodayAnalyticsSection } from "@/components/dashboard/TodayAnalyticsSect
 import { DailyGoalsSection } from "@/components/goals/DailyGoalsSection";
 import { EditGoalsModal } from "@/components/goals/EditGoalsModal";
 import { SignInModal } from "@/components/auth/SignInModal";
+import { GiftsSection } from "@/components/gifts/GiftsSection";
 
 const MORE_PAGES = [
   {
@@ -178,6 +179,8 @@ function DashboardHome() {
         <DailyGoalsSection onEdit={() => setGoalsOpen(true)} />
 
         <TodayAnalyticsSection />
+
+        <GiftsSection />
 
         <section className="space-y-4">
           <div>

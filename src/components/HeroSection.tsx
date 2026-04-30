@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Pencil, Brain, Sparkles, Play } from "@/lib/icons";
 import { useVibeStore } from "@/stores/useVibeStore";
 import { Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { IceCream } from "react-kawaii";
 import { useOnboardingStore } from "@/components/onboarding/useOnboardingStore";
 import { useDailyGoalsStore } from "@/stores/useDailyGoalsStore";
@@ -90,32 +91,51 @@ export default function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, type: isBoring ? "tween" : "spring" }}
       >
-        <motion.button
-          onClick={(e) => {
-            if (!onboarded) {
-              e.preventDefault();
-              openWizard();
-            } else {
-              window.location.href = "/smart-solve-all";
+        {!onboarded ? (
+          <motion.button
+            type="button"
+            onClick={() => openWizard()}
+            className="px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-primary text-primary-foreground font-bold text-sm sm:text-base border-[3px] border-border flex items-center gap-2"
+            style={isBoring ? undefined : { boxShadow: "4px 4px 0px hsl(var(--border))" }}
+            whileHover={
+              isBoring
+                ? { opacity: 0.9 }
+                : { scale: 1.08, y: -4, boxShadow: "6px 8px 0px hsl(var(--border))" }
             }
-          }}
-          className="px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-primary text-primary-foreground font-bold text-sm sm:text-base border-[3px] border-border flex items-center gap-2"
-          style={isBoring ? undefined : { boxShadow: "4px 4px 0px hsl(var(--border))" }}
-          whileHover={
-            isBoring
-              ? { opacity: 0.9 }
-              : { scale: 1.08, y: -4, boxShadow: "6px 8px 0px hsl(var(--border))" }
-          }
-          whileTap={
-            isBoring
-              ? undefined
-              : { scale: 0.97, y: 2, boxShadow: "1px 1px 0px hsl(var(--border))" }
-          }
-          transition={{ type: isBoring ? "tween" : "spring", stiffness: 400 }}
-        >
-          Start Solving Free
-          <Pencil size={18} />
-        </motion.button>
+            whileTap={
+              isBoring
+                ? undefined
+                : { scale: 0.97, y: 2, boxShadow: "1px 1px 0px hsl(var(--border))" }
+            }
+            transition={{ type: isBoring ? "tween" : "spring", stiffness: 400 }}
+          >
+            Start Solving Free
+            <Pencil size={18} />
+          </motion.button>
+        ) : (
+          <Link to="/smart-solve-all" preload="false" className="inline-flex">
+            <motion.span
+              className={cn(
+                "px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-primary text-primary-foreground font-bold text-sm sm:text-base border-[3px] border-border inline-flex items-center gap-2 cursor-pointer",
+              )}
+              style={isBoring ? undefined : { boxShadow: "4px 4px 0px hsl(var(--border))" }}
+              whileHover={
+                isBoring
+                  ? { opacity: 0.9 }
+                  : { scale: 1.08, y: -4, boxShadow: "6px 8px 0px hsl(var(--border))" }
+              }
+              whileTap={
+                isBoring
+                  ? undefined
+                  : { scale: 0.97, y: 2, boxShadow: "1px 1px 0px hsl(var(--border))" }
+              }
+              transition={{ type: isBoring ? "tween" : "spring", stiffness: 400 }}
+            >
+              Start Solving Free
+              <Pencil size={18} />
+            </motion.span>
+          </Link>
+        )}
 
         <Link to="/smart-solve-papers">
           <motion.button

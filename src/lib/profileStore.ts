@@ -221,13 +221,18 @@ export function useAllSchools(): string[] {
 
 // ─── dicebear avatar URL (thumbs style) ────────────────────────────────────
 
-export function avatarUrlFor(
-  user: Pick<UserProfile, "username" | "hasProfilePicture" | "profilePictureUrl">,
-): string {
-  if (user.hasProfilePicture && user.profilePictureUrl) return user.profilePictureUrl;
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(user.username)}`;
+/** PNG avatar for Clerk uploads + stable DB `image_url` when using “auto avatar”. */
+export function dicebearPngUrl(seed: string): string {
+  return `https://api.dicebear.com/9.x/thumbs/png?seed=${encodeURIComponent(seed)}`;
 }
 
 export function dicebearPreview(seed: string): string {
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(seed)}`;
+}
+
+export function avatarUrlFor(
+  user: Pick<UserProfile, "username" | "hasProfilePicture" | "profilePictureUrl">,
+): string {
+  if (user.hasProfilePicture && user.profilePictureUrl) return user.profilePictureUrl;
+  return dicebearPngUrl(user.username);
 }

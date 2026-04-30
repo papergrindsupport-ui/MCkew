@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { createApiClient } from "@/lib/apiClient";
+import { getClerkJwtForApi } from "@/lib/getClerkApiJwt";
 import { useAccountStore, type Profile, type AccountType } from "@/stores/useAccountStore";
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
@@ -35,10 +36,20 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      // Persist anonymous login across full reloads.
-      // /api/account/resolve currently returns a guest fallback for unsigned users,
-      // so if we already have a saved anonymous id, restore it locally first.
+      // Persist anonymous login across reloads: hydrate avatar + fields from DB via GET /profile.
       if (!isSignedIn && anonId) {
+        const apiAnon = createApiClient({ publicId: anonId });
+        try {
+          const hydrated = await apiAnon.getMyProfile();
+          const p = hydrated.profile as Profile | null | undefined;
+          if (p && p.account_type === "anonymous") {
+            setProfile(p);
+            ranOnce.current = true;
+            return;
+          }
+        } catch {
+          // offline / mismatched env — minimal stub until resolve works again
+        }
         setProfile({
           id: anonId,
           account_type: "anonymous",
@@ -58,9 +69,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       }
 
       const api = createApiClient({
-        getToken: isSignedIn
-          ? () => getToken({ template: "supabase" }).catch(() => null)
-          : undefined,
+        getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
         publicId: !isSignedIn ? anonId ?? guestId : null,
       });
 
@@ -137,9 +146,7 @@ export function useUpdateMyProfile() {
     async (patch: Partial<Profile>) => {
       if (!profile) throw new Error("No active profile");
       const api = createApiClient({
-        getToken: isSignedIn
-          ? () => getToken({ template: "supabase" }).catch(() => null)
-          : undefined,
+        getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
         publicId: !isSignedIn ? profile.public_id : null,
       });
       const { profile: updated } = await api.updateMyProfile(patch as Record<string, unknown>);

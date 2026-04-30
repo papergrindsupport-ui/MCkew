@@ -1,8 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster as HotToaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { CLERK_PUBLISHABLE_KEY } from "@/lib/clerkConfig";
+import { useEffect } from "react";
+import { loadCrisp } from "@/lib/crisp";
+import { useThemeStore } from "@/stores/useThemeStore";
+import { getClerkAppearance } from "@/lib/clerkAppearance";
 import { AccountProvider } from "@/integrations/account/AccountProvider";
 import { CloudSyncProvider } from "@/integrations/account/CloudSyncProvider";
 import { ProSyncProvider } from "@/integrations/account/ProSyncProvider";
@@ -152,9 +156,35 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function RootComponent() {
+/** Clerk modal / card UI follows app CSS variables + dark/light. */
+function ClerkAppearanceRoot({ children }: { children: React.ReactNode }) {
+  const isDark = useThemeStore((s) => s.isDark);
+  const appearance = useMemo(() => getClerkAppearance(isDark), [isDark]);
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      afterSignOutUrl="/"
+      appearance={appearance}
+    >
+      {children}
+    </ClerkProvider>
+  );
+}
+
+function RootComponent() {
+  useEffect(() => {
+    const load = () => loadCrisp();
+
+    window.addEventListener("click", load, { once: true });
+    window.addEventListener("scroll", load, { once: true });
+
+    return () => {
+      window.removeEventListener("click", load);
+      window.removeEventListener("scroll", load);
+    };
+  }, []);
+  return (
+    <ClerkAppearanceRoot>
       <AccountProvider>
         <CloudSyncProvider>
           <ProSyncProvider>
@@ -175,9 +205,11 @@ function RootComponent() {
             </Suspense>
             <HotToaster
               position="top-center"
+              containerStyle={{ zIndex: 10100 }}
               toastOptions={{
                 className: "!rounded-2xl !font-bold",
                 style: {
+                  zIndex: 10100,
                   background: "hsl(var(--card))",
                   color: "hsl(var(--foreground))",
                   border: "2px solid hsl(var(--border))",
@@ -187,6 +219,6 @@ function RootComponent() {
           </ProSyncProvider>
         </CloudSyncProvider>
       </AccountProvider>
-    </ClerkProvider>
+    </ClerkAppearanceRoot>
   );
 }

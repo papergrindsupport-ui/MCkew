@@ -238,14 +238,32 @@ export function QuestionForm({ question, onChange, correctLetter, onCorrectLette
         title="Data blocks"
         action={
           <div className="flex flex-wrap items-center gap-1.5">
-            <Button variant="outline" size="sm" onClick={addImage}>
-              <LuImage size={14} /> Image
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addImage}
+              className="inline-flex flex-row items-center gap-1.5 whitespace-nowrap"
+            >
+              <LuImage size={14} />
+              <span>Image</span>{" "}
             </Button>
-            <Button variant="outline" size="sm" onClick={addTable}>
-              <LuTable2 size={14} /> Table
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addTable}
+              className="inline-flex flex-row items-center gap-1.5 whitespace-nowrap"
+            >
+              <LuTable2 size={14} />
+              <span>Table</span>{" "}
             </Button>
-            <Button variant="outline" size="sm" onClick={addChart}>
-              <LuChartColumn size={14} /> Graph
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addChart}
+              className="inline-flex flex-row items-center gap-1.5 whitespace-nowrap"
+            >
+              <LuChartColumn size={14} />
+              <span>Graph</span>{" "}
             </Button>
           </div>
         }
@@ -319,22 +337,35 @@ export function QuestionForm({ question, onChange, correctLetter, onCorrectLette
                     </Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="md:col-span-2 space-y-2">
+                    <ImageUploadButton
+                      label="Drop an image here, or click to choose"
+                      onUploaded={(url) => {
+                        const next = data.slice();
+                        // Always replace prior URL with the new UploadThing URL.
+                        next[i] = {
+                          blocks: [
+                            {
+                              type: "image",
+                              src: url,
+                              alt: block.alt ?? "",
+                              imageType: block.imageType ?? "Photograph",
+                              size: block.size ?? "md",
+                              title: block.title,
+                              caption: block.caption,
+                            } as ImageBlock,
+                          ],
+                        };
+                        setData(next);
+                      }}
+                    />
                     <Input
-                      placeholder="Image URL"
+                      placeholder="Or paste image URL"
                       value={block.src}
                       onChange={(e) => {
                         const next = data.slice();
                         next[i] = { blocks: [{ ...block, src: e.target.value } as ImageBlock] };
-                        setData(next);
-                      }}
-                    />
-                    <ImageUploadButton
-                      label="Upload image"
-                      onUploaded={(url) => {
-                        const next = data.slice();
-                        next[i] = { blocks: [{ ...block, src: url } as ImageBlock] };
                         setData(next);
                       }}
                     />
@@ -405,8 +436,13 @@ export function QuestionForm({ question, onChange, correctLetter, onCorrectLette
                   />
                 </div>
                 {block.src && (
-                  <div className="rounded overflow-hidden border border-border max-w-xs">
-                    <img src={block.src} alt={block.alt} className="w-full h-auto" />
+                  <div className="rounded-lg overflow-hidden border border-border bg-muted/20 max-w-md shadow-sm">
+                    <img
+                      key={block.src}
+                      src={block.src}
+                      alt={block.alt || "Preview"}
+                      className="w-full h-auto"
+                    />
                   </div>
                 )}
               </div>

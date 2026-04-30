@@ -10,6 +10,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { createApiClient } from "@/lib/apiClient";
+import { getClerkJwtForApi } from "@/lib/getClerkApiJwt";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { _setAdminApi } from "@/admin/store";
 import { _setRemoteOverrides } from "@/admin/merge";
@@ -46,7 +47,7 @@ export function AdminStoreHydrator() {
 
   useEffect(() => {
     const api = createApiClient({
-      getToken: isSignedIn ? () => getToken({ template: "supabase" }).catch(() => null) : undefined,
+      getToken: isSignedIn ? () => getClerkJwtForApi(getToken) : undefined,
       publicId: !isSignedIn ? (profile?.public_id ?? null) : null,
     });
     _setAdminApi(api);

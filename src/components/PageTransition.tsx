@@ -110,7 +110,7 @@ export function PageTransition() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
-          className="fixed inset-0 z-[9999] overflow-hidden pointer-events-none"
+          className="fixed inset-0 z-[9999] pointer-events-none isolate overflow-hidden "
         >
           {/* Brief opaque cover at the very start so the new route can't flash
               before the liquid sweep visually covers the screen. */}

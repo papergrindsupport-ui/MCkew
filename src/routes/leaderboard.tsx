@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   LuSearch,
@@ -20,7 +20,12 @@ import {
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import { PencilsExplainer } from "@/components/PencilsExplainer";
-import { createApiClient } from "@/lib/apiClient";
+import { useApi } from "@/integrations/account/useApi";
+import { GiftDrawer, type GiftRecipient } from "@/components/gifts/GiftDrawer";
+import toast from "react-hot-toast";
+import type { EnvRoleFlags } from "@/lib/envRoleBadges";
+import { roleFlagsForCandidateIds } from "@/lib/envRoleBadges";
+import { EnvRoleBadges } from "@/components/profile/EnvRoleBadges";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
@@ -44,9 +49,28 @@ type User = {
   bio: string;
   pencils: number;
   badge: Badge;
+  accountType: "clerk" | "anonymous" | "guest";
+  followerCount: number;
+  viewerFollows: boolean;
+  isMe: boolean;
+  envRoleFlags: EnvRoleFlags;
 };
 
 const PER_PAGE = 40;
+
+// ───────────────────────── Action context ─────────────────────────
+// Share follow/gift handlers down to ProfilePopover without prop drilling.
+type LeaderboardActions = {
+  onToggleFollow: (user: User) => void;
+  onGift: (user: User) => void;
+  followLoading: Set<string>;
+};
+const ActionsContext = createContext<LeaderboardActions | null>(null);
+function useActions() {
+  const ctx = useContext(ActionsContext);
+  if (!ctx) throw new Error("ActionsContext missing");
+  return ctx;
+}
 
 function fmt(n: number) {
   return n.toLocaleString("en-US");
@@ -60,26 +84,42 @@ function LeaderboardPage() {
   const [realUsers, setRealUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [drawerRecipient, setDrawerRecipient] = useState<GiftRecipient | null>(null);
+  const api = useApi();
+
   // Fetch real users from the leaderboard API; merge ahead of the dummy seed
   // so the page is always populated even before any signups.
-  useEffect(() => {
-    const api = createApiClient();
+  function refresh() {
+    setLoading(true);
     api
       .getLeaderboard()
       .then(
         (r) => {
           const mapped: User[] = (r.data ?? []).map((u) => {
             const handle = u.username || u.id;
+            const isAnon = u.accountType !== "clerk";
+            const displayName = isAnon ? "Anonymous" : u.displayName || u.username || "Anonymous";
+            const envRoleFlags = roleFlagsForCandidateIds([
+              u.clerkUserId,
+              u.profileUuid,
+              u.id,
+              u.username,
+            ]);
             return {
               id: `real-${u.id}`,
-              name: u.displayName || u.username || "Anonymous",
+              name: displayName,
               username: handle,
               avatar:
                 u.imageUrl ||
                 `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(handle)}`,
-              bio: u.bio || "MCkew learner.",
+              bio: u.bio || (isAnon ? "Anonymous learner." : "MCkew learner."),
               pencils: u.pencils,
               badge: null,
+              accountType: (u.accountType as User["accountType"]) || "clerk",
+              followerCount: u.followerCount ?? 0,
+              viewerFollows: Boolean(u.viewerFollows),
+              isMe: Boolean(u.isMe),
+              envRoleFlags,
             };
           });
           setRealUsers(mapped);
@@ -87,7 +127,73 @@ function LeaderboardPage() {
         () => setRealUsers([]),
       )
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const [followLoading, setFollowLoading] = useState<Set<string>>(new Set());
+
+  function publicIdFromUser(u: User): string {
+    return u.id.startsWith("real-") ? u.id.slice(5) : u.id;
+  }
+
+  async function onToggleFollow(u: User) {
+    if (u.isMe || u.accountType !== "clerk") return;
+    const pid = publicIdFromUser(u);
+    const wasFollowing = u.viewerFollows;
+    setFollowLoading((s) => new Set(s).add(u.id));
+    // Optimistic update
+    setRealUsers((arr) =>
+      arr.map((x) =>
+        x.id === u.id
+          ? {
+              ...x,
+              viewerFollows: !wasFollowing,
+              followerCount: x.followerCount + (wasFollowing ? -1 : 1),
+            }
+          : x,
+      ),
+    );
+    try {
+      if (wasFollowing) await api.unfollowUser(pid);
+      else await api.followUser(pid);
+    } catch (e: any) {
+      // Rollback
+      setRealUsers((arr) =>
+        arr.map((x) =>
+          x.id === u.id
+            ? {
+                ...x,
+                viewerFollows: wasFollowing,
+                followerCount: x.followerCount + (wasFollowing ? 1 : -1),
+              }
+            : x,
+        ),
+      );
+      toast.error(e?.error || "Could not update follow");
+    } finally {
+      setFollowLoading((s) => {
+        const next = new Set(s);
+        next.delete(u.id);
+        return next;
+      });
+    }
+  }
+
+  function onGift(u: User) {
+    if (u.isMe || u.accountType !== "clerk") return;
+    setDrawerRecipient({
+      publicId: publicIdFromUser(u),
+      username: u.username,
+      displayName: u.name,
+      imageUrl: u.avatar,
+    });
+  }
+
+  const actions: LeaderboardActions = { onToggleFollow, onGift, followLoading };
 
   const sorted = useMemo(() => [...realUsers].sort((a, b) => b.pencils - a.pencils), [realUsers]);
 
@@ -111,107 +217,115 @@ function LeaderboardPage() {
     : (hasPodium ? 4 : 1) + (safePage - 1) * PER_PAGE;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden">
-      <Navbar />
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-primary/10 blur-3xl"
-          animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.7, 0.5] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+    <ActionsContext.Provider value={actions}>
+      <div className="min-h-screen bg-background relative overflow-x-hidden">
+        <Navbar />
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-primary/10 blur-3xl"
+            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.7, 0.5] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-3">
+              <LuTrophy size={14} /> LEADERBOARD
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
+              Top of the class
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
+              Earn pencils by solving questions and passing papers. Climb the ranks.
+            </p>
+          </motion.div>
+
+          {/* Loading skeleton */}
+          {loading && <LeaderboardSkeleton />}
+
+          {/* Podium */}
+          {!loading && (
+            <Podium
+              users={top3}
+              openProfile={openProfile}
+              onOpenProfile={(id) => setOpenProfile((cur) => (cur === id ? null : id))}
+            />
+          )}
+
+          <div className="relative">
+            <div className="pointer-events-none absolute -top-10 inset-x-0 h-10 bg-gradient-to-b from-transparent to-background" />
+          </div>
+
+          {/* Search */}
+          <div className="mt-2 sm:mt-4">
+            <SearchBar
+              value={query}
+              onChange={(v) => {
+                setQuery(v);
+                setPage(1);
+              }}
+            />
+          </div>
+
+          {/* Table header (desktop) */}
+          <div className="hidden sm:grid grid-cols-[80px_1fr_140px_100px] gap-3 px-5 mt-6 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div>Rank</div>
+            <div>User</div>
+            <div className="text-right">Pencils</div>
+            <div className="text-right">Reward</div>
+          </div>
+
+          {/* List */}
+          <LayoutGroup>
+            <motion.ul layout className="mt-2 flex flex-col gap-2">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {paged.map((u, idx) => (
+                  <UserRow
+                    key={u.id}
+                    user={u}
+                    rank={startRank + idx}
+                    expanded={openProfile === u.id}
+                    onToggle={() => setOpenProfile((cur) => (cur === u.id ? null : u.id))}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.ul>
+          </LayoutGroup>
+
+          {filtered.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-10 text-center text-muted-foreground text-sm"
+            >
+              No users match "{query}".
+            </motion.div>
+          )}
+
+          {totalPages > 1 && (
+            <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
+          )}
+
+          {/* Pencils explainer */}
+          <div className="pt-8">
+            <PencilsExplainer />
+          </div>
+        </div>
+        <GiftDrawer
+          open={Boolean(drawerRecipient)}
+          onOpenChange={(o) => !o && setDrawerRecipient(null)}
+          recipient={drawerRecipient}
+          onSent={() => refresh()}
         />
       </div>
-
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-center"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-3">
-            <LuTrophy size={14} /> LEADERBOARD
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
-            Top of the class
-          </h1>
-          <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
-            Earn pencils by solving questions and passing papers. Climb the ranks.
-          </p>
-        </motion.div>
-
-        {/* Loading skeleton */}
-        {loading && <LeaderboardSkeleton />}
-
-        {/* Podium */}
-        {!loading && (
-          <Podium
-            users={top3}
-            openProfile={openProfile}
-            onOpenProfile={(id) => setOpenProfile((cur) => (cur === id ? null : id))}
-          />
-        )}
-
-        <div className="relative">
-          <div className="pointer-events-none absolute -top-10 inset-x-0 h-10 bg-gradient-to-b from-transparent to-background" />
-        </div>
-
-        {/* Search */}
-        <div className="mt-2 sm:mt-4">
-          <SearchBar
-            value={query}
-            onChange={(v) => {
-              setQuery(v);
-              setPage(1);
-            }}
-          />
-        </div>
-
-        {/* Table header (desktop) */}
-        <div className="hidden sm:grid grid-cols-[80px_1fr_140px_100px] gap-3 px-5 mt-6 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          <div>Rank</div>
-          <div>User</div>
-          <div className="text-right">Pencils</div>
-          <div className="text-right">Reward</div>
-        </div>
-
-        {/* List */}
-        <LayoutGroup>
-          <motion.ul layout className="mt-2 flex flex-col gap-2">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {paged.map((u, idx) => (
-                <UserRow
-                  key={u.id}
-                  user={u}
-                  rank={startRank + idx}
-                  expanded={openProfile === u.id}
-                  onToggle={() => setOpenProfile((cur) => (cur === u.id ? null : u.id))}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.ul>
-        </LayoutGroup>
-
-        {filtered.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-10 text-center text-muted-foreground text-sm"
-          >
-            No users match "{query}".
-          </motion.div>
-        )}
-
-        {totalPages > 1 && (
-          <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
-        )}
-
-        {/* Pencils explainer */}
-        <div className="pt-8">
-          <PencilsExplainer />
-        </div>
-      </div>
-    </div>
+    </ActionsContext.Provider>
   );
 }
 
@@ -394,16 +508,19 @@ function PodiumColumn({
         </motion.button>
       </motion.div>
 
-      <motion.button
-        type="button"
-        onClick={onToggle}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 + indexDelay }}
-        className="mt-3 font-bold text-sm sm:text-lg text-foreground hover:text-primary transition-colors text-center max-w-full truncate px-1"
-      >
-        {user.name}
-      </motion.button>
+      <div className="mt-3 flex items-center justify-center gap-1 flex-wrap max-w-full px-1">
+        <motion.button
+          type="button"
+          onClick={onToggle}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 + indexDelay }}
+          className="font-bold text-sm sm:text-lg text-foreground hover:text-primary transition-colors text-center truncate min-w-0"
+        >
+          {user.name}
+        </motion.button>
+        <EnvRoleBadges flags={user.envRoleFlags} />
+      </div>
       <button
         type="button"
         onClick={onToggle}
@@ -574,6 +691,7 @@ function UserRow({
               <span className="font-bold text-sm sm:text-[15px] text-foreground truncate hover:text-primary transition-colors">
                 {user.name}
               </span>
+              <EnvRoleBadges flags={user.envRoleFlags} />
               {user.badge && <BadgeChip badge={user.badge} />}
             </div>
             <div className="text-[11px] sm:text-xs text-muted-foreground truncate hover:text-primary transition-colors">
@@ -631,6 +749,10 @@ function BadgeChip({ badge }: { badge: NonNullable<Badge> }) {
 
 // ───────────────────────── Profile popover ─────────────────────────
 function ProfilePopover({ user, onClose }: { user: User; onClose: () => void }) {
+  const isAnon = user.accountType !== "clerk";
+  const { onToggleFollow, onGift, followLoading } = useActions();
+  const isFollowing = user.viewerFollows;
+  const isLoadingFollow = followLoading.has(user.id);
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -658,11 +780,15 @@ function ProfilePopover({ user, onClose }: { user: User; onClose: () => void }) 
             className="w-14 h-14 rounded-2xl border-2 border-border object-cover bg-muted"
           />
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-bold text-foreground truncate">{user.name}</span>
+              <EnvRoleBadges flags={user.envRoleFlags} />
               {user.badge && <BadgeChip badge={user.badge} />}
             </div>
             <div className="text-xs text-muted-foreground truncate">@{user.username}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              <span className="font-bold text-foreground">{fmt(user.followerCount)}</span> followers
+            </div>
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground leading-relaxed line-clamp-3">
@@ -678,29 +804,54 @@ function ProfilePopover({ user, onClose }: { user: User; onClose: () => void }) 
             Pencils
           </div>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/15 text-xs font-bold transition"
-          >
-            <LuUserPlus size={13} /> Follow
-          </button>
-          <button
-            type="button"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-foreground text-xs font-bold transition"
-          >
-            <LuGift size={13} /> Gift
-          </button>
-        </div>
-        <a
-          href={`/profile/${user.username}`}
-          onClick={(e) => e.stopPropagation()}
-          className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition shadow-sm"
-        >
-          Visit profile <LuArrowRight size={14} />
-        </a>
+        {isAnon ? (
+          <div className="mt-3 rounded-xl border-2 border-dashed border-border bg-muted/30 px-3 py-2.5 text-center">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Anonymous learner
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground">No public profile</div>
+          </div>
+        ) : (
+          <>
+            {!user.isMe && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={isLoadingFollow}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFollow(user);
+                  }}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition disabled:opacity-60",
+                    isFollowing
+                      ? "bg-card border-2 border-border text-foreground hover:bg-muted"
+                      : "bg-primary/10 text-primary hover:bg-primary/15",
+                  )}
+                >
+                  <LuUserPlus size={13} /> {isFollowing ? "Following" : "Follow"}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onGift(user);
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-foreground text-xs font-bold transition"
+                >
+                  <LuGift size={13} /> Gift
+                </button>
+              </div>
+            )}
+            <a
+              href={`/profile/${user.username}`}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition shadow-sm"
+            >
+              {user.isMe ? "View my profile" : "Visit profile"} <LuArrowRight size={14} />
+            </a>
+          </>
+        )}
         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-card border-r-2 border-b-2 border-border" />
       </div>
     </motion.div>

@@ -140,7 +140,7 @@ export default function Navbar() {
       </Link>
 
       {/* Desktop links */}
-      <div className="hidden md:flex items-center gap-1">
+      <div className="app-nav-desktop items-center gap-1">
         {PRIMARY_LINKS.map((item) => (
           <DesktopLink
             key={item.href}
@@ -278,7 +278,7 @@ export default function Navbar() {
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
           whileTap={{ scale: 0.9 }}
-          className="md:hidden w-10 h-10 rounded-full flex items-center justify-center border-[2.5px] border-border bg-card shadow-sm cursor-pointer"
+          className="app-nav-mobile-toggle w-10 h-10 rounded-full items-center justify-center border-[2.5px] border-border bg-card shadow-sm cursor-pointer"
         >
           <motion.div
             animate={{ rotate: mobileOpen ? 90 : 0 }}
@@ -303,14 +303,14 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="md:hidden fixed inset-0 top-[var(--nav-h,52px)] bg-background/60 backdrop-blur-sm z-40 cursor-pointer"
+              className="app-nav-mobile-only fixed inset-0 top-[var(--nav-h,52px)] bg-background/60 backdrop-blur-sm z-40 cursor-pointer"
             />
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2, type: "spring", stiffness: 280, damping: 24 }}
-              className="md:hidden absolute left-2 right-2 top-full mt-2 z-50 rounded-2xl border-[2.5px] border-border bg-card shadow-xl p-2"
+              className="app-nav-mobile-only absolute left-2 right-2 top-full mt-2 z-50 rounded-2xl border-[2.5px] border-border bg-card shadow-xl p-2"
             >
               <nav className="flex flex-col gap-1">
                 {PRIMARY_LINKS.map((item) => (
@@ -460,6 +460,7 @@ function AnonOrSignInButton({ onSignIn }: { onSignIn: () => void }) {
   const setAnonId = useAccountStore((s) => s.setAnonId);
   const isAnon = profile?.account_type === "anonymous";
   const [open, setOpen] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -471,12 +472,17 @@ function AnonOrSignInButton({ onSignIn }: { onSignIn: () => void }) {
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
 
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [profile?.image_url]);
+
   if (isAnon) {
     const anonId = profile?.public_id ?? profile?.username ?? "anon";
     const initials = (profile?.username || profile?.display_name || "A")
       .replace(/^anon-/, "")
       .slice(0, 2)
       .toUpperCase();
+    const avatarUrl = profile?.image_url?.trim();
 
     const copyAnonId = async () => {
       try {
@@ -503,9 +509,18 @@ function AnonOrSignInButton({ onSignIn }: { onSignIn: () => void }) {
           onClick={() => setOpen((o) => !o)}
           whileTap={{ scale: 0.92 }}
           aria-label="Anonymous account"
-          className="w-9 h-9 rounded-full flex items-center justify-center border-[2.5px] border-border bg-card shadow-sm cursor-pointer hover:border-primary/60 transition text-[11px] font-bold text-muted-foreground"
+          className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center border-[2.5px] border-border bg-card shadow-sm cursor-pointer hover:border-primary/60 transition text-[11px] font-bold text-muted-foreground"
         >
-          {initials}
+          {avatarUrl && !avatarFailed ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="size-full object-cover"
+              onError={() => setAvatarFailed(true)}
+            />
+          ) : (
+            initials
+          )}
         </motion.button>
         <AnimatePresence>
           {open && (

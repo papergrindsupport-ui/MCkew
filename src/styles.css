@@ -23,6 +23,13 @@
 
 @theme inline {
   --font-sans: "Fredoka", sans-serif;
+  /* Use pixel breakpoints so desktop/mobile layout does not flip when a
+     route changes loaded CSS or browser font scaling affects rem units. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -1166,4 +1173,29 @@
   direction: ltr;
   text-align: left;
   white-space: pre-wrap;
+}
+/* Route-safe responsive guards for the header and homepage subject grid. */
+.app-nav-desktop {
+  display: none;
+}
+.app-nav-mobile-toggle {
+  display: flex;
+}
+.app-nav-mobile-only {
+  display: block;
+}
+.subject-card-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 768px) {
+  .app-nav-desktop {
+    display: flex !important;
+  }
+  .app-nav-mobile-toggle,
+  .app-nav-mobile-only {
+    display: none !important;
+  }
+  .subject-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
 }

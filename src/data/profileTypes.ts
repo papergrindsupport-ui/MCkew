@@ -104,4 +104,11 @@ export interface UserProfile {
   following: string[]; // usernames
 
   createdAt: number;
+
+  /** When resolved from API — used for env-based ADMIN / VOLUNTEER / DEV badges */
+  syncIds?: {
+    profileUuid?: string;
+    publicId?: string;
+    clerkUserId?: string | null;
+  };
 }
