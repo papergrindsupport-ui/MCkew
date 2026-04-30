@@ -16,7 +16,7 @@ function AdminHomeFab() {
     <Link
       to="/admin/editor"
       className={cn(
-        "fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full",
+        "fixed bottom-24 right-6 z-40 flex size-14 items-center justify-center rounded-full",
         "bg-primary text-primary-foreground shadow-xl ring-2 ring-primary/25",
         "hover:opacity-95 active:scale-95 transition motion-reduce:transition-none",
         "animate-in fade-in zoom-in-95 duration-300",
