@@ -128,7 +128,7 @@ export default function Navbar() {
       className="flex items-center justify-between px-3 sm:px-5 md:px-8 py-2 border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-xl z-50 print:hidden"
     >
       {/* Brand */}
-      <Link to="/" className="shrink-0">
+      <Link to="/" className="shrink-0" preload={false}>
         <motion.div
           className="flex items-center gap-1.5 text-base sm:text-lg font-bold text-primary cursor-pointer"
           whileHover={isBoring ? undefined : { scale: 1.04 }}
@@ -207,7 +207,7 @@ export default function Navbar() {
                       transition={{ type: "spring", stiffness: 380, damping: 22, delay: i * 0.04 }}
                       className="absolute left-1/2 top-0 -ml-12 pointer-events-auto"
                     >
-                      <Link to={s.href} onClick={() => setSubjectsOpen(false)}>
+                      <Link to={s.href} onClick={() => setSubjectsOpen(false)} preload={false}>
                         <motion.div
                           whileHover={{ scale: 1.08, y: -2 }}
                           whileTap={{ scale: 0.95 }}
@@ -366,7 +366,14 @@ function DesktopLink({
       {item.label}
     </motion.span>
   );
-  return hashLink ? <a href={item.href}>{Inner}</a> : <Link to={item.href}>{Inner}</Link>;
+  // Disable preload on hover to prevent layout shifts caused by preloading activity.
+  return hashLink ? (
+    <a href={item.href}>{Inner}</a>
+  ) : (
+    <Link to={item.href} preload={false}>
+      {Inner}
+    </Link>
+  );
 }
 
 function MobileLink({
@@ -384,12 +391,13 @@ function MobileLink({
     "px-3 py-2.5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer",
     active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted/60",
   );
+  // Disable preload to prevent layout shifts on touch/hover.
   return hashLink ? (
     <a href={item.href} onClick={onNav} className={cls}>
       <item.icon size={14} /> {item.label}
     </a>
   ) : (
-    <Link to={item.href} onClick={onNav} className={cls}>
+    <Link to={item.href} onClick={onNav} preload={false} className={cls}>
       <item.icon size={14} /> {item.label}
     </Link>
   );
@@ -430,7 +438,7 @@ function MobileSubjectsCollapse({ pathname, onNav }: { pathname: string; onNav: 
               {SUBJECTS.map((s) => {
                 const active = isActive(pathname, s.href);
                 return (
-                  <Link key={s.href} to={s.href} onClick={onNav}>
+                  <Link key={s.href} to={s.href} onClick={onNav} preload={false}>
                     <motion.div
                       whileTap={{ scale: 0.96 }}
                       className={cn(
