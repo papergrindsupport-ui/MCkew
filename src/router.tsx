@@ -59,11 +59,9 @@ export const getRouter = () => {
     routeTree,
     context: {},
     scrollRestoration: true,
-    // Preload routes when the user hovers/touches a link, and keep the
-    // preloaded data fresh for 30s so navigation feels instant.
-    defaultPreload: "intent",
-    defaultPreloadStaleTime: 30_000,
-    defaultPreloadDelay: 50,
+    // Disable global link-hover preloading. Route preloads were causing
+    // responsive/layout state to flip before navigation completed.
+    defaultPreload: false,
     defaultErrorComponent: DefaultErrorComponent,
   });
 

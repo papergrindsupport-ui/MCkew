@@ -113,7 +113,7 @@ export default function HeroSection() {
             <Pencil size={18} />
           </motion.button>
         ) : (
-          <Link to="/smart-solve-all" preload="false" className="inline-flex">
+          <Link to="/smart-solve-all" preload={false} className="inline-flex">
             <motion.span
               className={cn(
                 "px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-primary text-primary-foreground font-bold text-sm sm:text-base border-[3px] border-border inline-flex items-center gap-2 cursor-pointer",
@@ -137,7 +137,7 @@ export default function HeroSection() {
           </Link>
         )}
 
-        <Link to="/smart-solve-papers">
+        <Link to="/smart-solve-papers" preload={false}>
           <motion.button
             className="px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-card text-foreground font-bold text-sm sm:text-base border-[3px] border-border flex items-center gap-2"
             style={isBoring ? undefined : { boxShadow: "4px 4px 0px hsl(var(--border))" }}

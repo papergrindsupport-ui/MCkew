@@ -5,8 +5,12 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LuLayoutGrid, LuList, LuPlay, LuFileCheck, LuSparkles, LuHammer } from "react-icons/lu";
 import Navbar from "@/components/Navbar";
-import { getMergedAnswerKeyForPaper, getMergedPapers } from "@/admin/merge";
-import { getPaperQuestions } from "@/data/paperQuestions";
+import {
+  getMergedAnswerKeyForPaper,
+  getMergedPapers,
+  getMergedQuestionsForPaper,
+} from "@/admin/merge";
+// import { getPaperQuestions } from "@/data/paperQuestions";
 import { subscribeAdminStore } from "@/admin/store";
 import { type Subject, SUBJECT_LABEL } from "@/data/paperData";
 import { PaperSessionProvider } from "@/components/papers/PaperSession";
@@ -138,7 +142,7 @@ export function SmartSolveSubjectPage({ subject, title }: Props) {
   // Build all rows (subject-restricted at the row source level so /smart-solve-bio truly only knows bio)
   const allRows = useMemo(() => {
     const papers = subject ? PAPERS.filter((p) => p.subject === subject) : PAPERS;
-    return buildQuestionRows(papers, getPaperQuestions);
+    return buildQuestionRows(papers, getMergedQuestionsForPaper);
   }, [PAPERS, subject]);
 
   const filteredByGenerator = useMemo(
