@@ -17,10 +17,12 @@ import type { Question } from "@/data/questionData";
 import { type Paper, parsePaperId, SUBJECT_COLORS, type Subject } from "@/data/paperData";
 import { QuestionView } from "@/components/papers/QuestionView";
 import { usePaperSession } from "@/components/papers/PaperSession";
+import { PaperSettingsButton } from "@/components/papers/PaperSettingsButton";
 import { useSmartSolveStore } from "./useSmartSolveStore";
 import { QuestionCardMenu } from "./QuestionCardMenu";
 import { BookmarkButton } from "@/components/papers/QuestionAnnotations";
 import { useAnnotationsStore, qkey } from "@/components/papers/useAnnotationsStore";
+import { SmartSolveSettingsButton } from "./SmartSolveSettingsButton";
 
 const SUBJECT_ICON: Record<Subject, typeof LuLeaf> = {
   bio: LuLeaf,
@@ -203,6 +205,7 @@ function PlayModeModal({
               {paused ? <LuPlay size={14} /> : <LuPause size={14} />}
             </button>
           )}
+          <SmartSolveSettingsButton />
           <BookmarkButton paperId={current.paper.id} qid={current.q.id} className="w-9 h-9" />
           <QuestionCardMenu paper={current.paper} qid={current.q.id} />
           <motion.button

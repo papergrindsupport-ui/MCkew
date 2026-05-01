@@ -87,14 +87,14 @@ export function SmartSolveSettingsButton() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="rounded-3xl max-w-lg max-h-[85vh] overflow-y-auto z-[200]">
+          {" "}
           <DialogHeader>
             <DialogTitle className="text-2xl">Smart Solve settings</DialogTitle>
             <DialogDescription>
               Settings for <span className="font-bold capitalize">{mode}</span> mode.
             </DialogDescription>
           </DialogHeader>
-
           <Section title="Marking & submission">
             <div className="space-y-2">
               {allowedSubmissionModes.map((m) => {
@@ -132,7 +132,6 @@ export function SmartSolveSettingsButton() {
               })}
             </div>
           </Section>
-
           {mode === "play" && (
             <Section title="Play mode">
               <ToggleRow
@@ -160,7 +159,6 @@ export function SmartSolveSettingsButton() {
               )}
             </Section>
           )}
-
           {mode === "exam" && (
             <Section title="Exam mode">
               <ToggleRow
@@ -189,7 +187,6 @@ export function SmartSolveSettingsButton() {
               )}
             </Section>
           )}
-
           <Section title="Display">
             <ToggleRow
               icon={<LuScissors size={14} />}
