@@ -11,7 +11,7 @@ const plans = [
   {
     name: "Starter",
     price: "Free",
-    features: ["2023–2026 papers", "All subjects", "Basic analytics"],
+    features: ["2023–2026 papers", "All subjects", "Full analytics"],
     highlighted: false,
     cta: "Get Started",
   },
@@ -19,7 +19,7 @@ const plans = [
     name: "Scholar",
     price: "$9.99",
     priceNote: "one-time",
-    features: ["All years (2016–2026)", "Unlimited papers", "Full analytics", "Priority access"],
+    features: ["All years (2016–2026)", "ALL topics", "Full analytics", "Priority access"],
     highlighted: true,
     cta: "Unlock Now",
   },

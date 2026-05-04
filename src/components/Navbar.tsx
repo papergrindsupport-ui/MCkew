@@ -255,8 +255,8 @@ export default function Navbar() {
               afterSignOutUrl="/"
               appearance={{
                 elements: {
-                  userButtonAvatarBox: "w-9 h-9 ring-[2.5px] ring-border",
-                  userButtonTrigger: "rounded-full hover:ring-primary/60 transition",
+                  userButtonAvatarBox: "!w-10 !h-10 ring-[2.5px] ring-border",
+                  userButtonTrigger: "rounded-full !hover:ring-primary/60 transition ",
                 },
               }}
             >

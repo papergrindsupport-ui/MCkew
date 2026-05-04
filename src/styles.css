@@ -1206,14 +1206,82 @@
 .cc-vk540,
 .cc-vk540--status-initial,
 .cc-4ppoy {
-  opacity: 0 ;
-  display: none  !important;
+  opacity: 0;
+  display: none !important;
 }
 .cl-internal-l2l775,
 .cl-internal-1k7jtru,
 .cl-internal-13hl4in,
 .cl-internal-1fpq5at {
-  display: none  !important;
-  opacity: none  !important;
-  color: hsl(var(--color-foreground))  !important
+  display: none !important;
+  opacity: none !important;
+  color: hsl(var(--color-foreground)) !important;
+}
+
+/* ========== Mobile Touch Support ========== */
+
+/* Ensure minimum touch targets for interactive elements */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[role="link"],
+[role="tab"],
+[role="menuitem"],
+[role="option"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation; /* Prevent zoom on double-tap */
+}
+
+/* Remove tap highlights on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text; /* Allow text selection where needed */
+}
+
+/* Improve touch scrolling and gestures */
+html {
+  touch-action: pan-x pan-y; /* Allow panning in all directions */
+}
+
+/* Ensure form inputs are touch-friendly */
+input,
+select,
+textarea {
+  font-size: 16px; /* Prevent zoom on focus in iOS */
+  touch-action: manipulation;
+}
+
+/* Custom touch feedback for buttons without changing appearance */
+button:active,
+[role="button"]:active {
+  transform: scale(0.98); /* Subtle feedback */
+  transition: transform 0.1s ease;
+}
+
+/* Prevent text selection on interactive elements except inputs */
+button,
+a,
+[role="button"],
+[role="link"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow scrolling on scrollable areas */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  touch-action: pan-y; /* Allow vertical scrolling */
+}
+
+/* Horizontal scrolling areas */
+.overflow-x-auto {
+  touch-action: pan-x;
 }

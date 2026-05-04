@@ -53,7 +53,7 @@ export default function Footer() {
       </nav>
       <p className="text-muted-foreground flex items-center justify-center gap-1 text-sm sm:text-base">
         Made with <Heart size={14} className="text-primary" fill="currentColor" /> for IGCSE
-        students & teachers. © 2025
+        students. © 2025
       </p>
     </motion.footer>
   );

@@ -45,8 +45,42 @@ export interface QuestionFilters {
 }
 
 const ALL_VARIANTS = Array.from(new Set(Object.values(SESSION_VARIANTS).flat()));
-const ALL_TOPIC_KEYS = TOPICS.map((t) => t.key);
 const ALL_SKILL_KEYS = SKILLS.flatMap((s) => s.sub.map((x) => x.key));
+
+export function topicsForSubject(subject?: Subject) {
+  return subject ? TOPICS.filter((topic) => topic.subject === subject) : TOPICS;
+}
+
+export function topicKeysForSubject(subject?: Subject): string[] {
+  return topicsForSubject(subject).flatMap((topic) => [
+    topic.key,
+    ...topic.lessons.map((lesson) => lesson.key),
+  ]);
+}
+
+export function sanitizeQuestionFilters(
+  filters: QuestionFilters,
+  restrictSubject?: Subject,
+): QuestionFilters {
+  if (!restrictSubject) return filters;
+
+  const allowedTopicKeys = new Set(topicKeysForSubject(restrictSubject));
+  const nextTopics = buildTriMap([...allowedTopicKeys]);
+  for (const key of Object.keys(nextTopics)) {
+    nextTopics[key] = filters.topics[key] ?? null;
+  }
+
+  const nextSubjects = buildTriMap(SUBJECTS.map((s) => s.key));
+  for (const subject of Object.keys(nextSubjects) as Subject[]) {
+    nextSubjects[subject] = subject === restrictSubject ? true : null;
+  }
+
+  return {
+    ...filters,
+    subjects: nextSubjects,
+    topics: nextTopics,
+  };
+}
 
 export function makeDefaultQuestionFilters(restrictSubject?: Subject): QuestionFilters {
   const subjMap = buildTriMap(SUBJECTS.map((s) => s.key));
@@ -57,7 +91,7 @@ export function makeDefaultQuestionFilters(restrictSubject?: Subject): QuestionF
     sessions: buildTriMap(SESSIONS.map((s) => s.key)),
     variants: buildTriMap(ALL_VARIANTS),
     gts: buildTriMap(GRADE_THRESHOLDS),
-    topics: buildTriMap(ALL_TOPIC_KEYS),
+    topics: buildTriMap(topicKeysForSubject(restrictSubject)),
     skills: buildTriMap(ALL_SKILL_KEYS),
     tags: buildTriMap(ALL_TAGS),
     difficulty: buildTriMap(DIFFICULTIES),

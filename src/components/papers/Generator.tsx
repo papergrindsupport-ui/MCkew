@@ -16,12 +16,19 @@ import {
   LuTag,
   LuFlame,
   LuStar,
+  LuLeaf,
+  LuBolt,
+  LuDroplet,
+  LuHeartPulse,
+  LuGlobe,
   LuArrowDownUp,
 } from "react-icons/lu";
+import { FaFlask } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import {
   type Paper,
   SUBJECTS,
+  SUBJECT_COLORS,
   YEARS,
   SESSIONS,
   SESSION_VARIANTS,
@@ -219,7 +226,9 @@ export function Generator({
                   icon={LuCalendar}
                   map={filters.years}
                   onChange={(m) => update("years", m)}
-                  options={[...YEARS].sort((a, b) => b - a).map((y) => ({ key: String(y), label: String(y) }))}
+                  options={[...YEARS]
+                    .sort((a, b) => b - a)
+                    .map((y) => ({ key: String(y), label: String(y) }))}
                   isLocked={(k) => isYearLocked(k)}
                 />
                 <CheckDropdown
@@ -470,6 +479,31 @@ function TopicsDrawer({
   const count = activeKeys(map).length;
   const allKeys = [...ALL_TOPIC_KEYS, ...TOPICS.flatMap((t) => t.lessons.map((l) => l.key))];
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const isLessonLocked = (topicKey: string, lessonKey: string) =>
+    (isLocked?.(topicKey) ?? false) || (isLocked?.(lessonKey) ?? false);
+  const unlockedKeys = groupedTopicKeys(TOPICS, isLessonLocked, isLocked);
+  const unlockedTopicKeys = TOPICS.filter((topic) => !isLocked?.(topic.key)).map(
+    (topic) => topic.key,
+  );
+
+  useState(() => {
+    const next = { ...map };
+    let changed = false;
+    TOPICS.forEach((topic) => {
+      if ((isLocked?.(topic.key) ?? false) && next[topic.key] != null) {
+        next[topic.key] = null;
+        changed = true;
+      }
+      topic.lessons.forEach((lesson) => {
+        if (isLessonLocked(topic.key, lesson.key) && next[lesson.key] != null) {
+          next[lesson.key] = null;
+          changed = true;
+        }
+      });
+    });
+    if (changed) onChange(next);
+    return null;
+  });
 
   const onTopicChange = (topicKey: string, v: TriState) => {
     if (isLocked?.(topicKey)) {
@@ -479,10 +513,86 @@ function TopicsDrawer({
     const lessons = TOPICS.find((t) => t.key === topicKey)?.lessons.map((l) => l.key) ?? [];
     const next = { ...map, [topicKey]: v };
     lessons.forEach((l) => {
-      next[l] = v;
+      if (!isLessonLocked(topicKey, l)) next[l] = v;
     });
     if (v === true) setExpanded((e) => ({ ...e, [topicKey]: true }));
     onChange(next);
+  };
+
+  const getTopicIcon = (label: string) => {
+    const text = label.toLowerCase();
+    if (
+      text.includes("plant") ||
+      text.includes("photosynthesis") ||
+      text.includes("chlorophyll") ||
+      text.includes("leaf") ||
+      text.includes("xylem") ||
+      text.includes("phloem") ||
+      text.includes("transpiration")
+    ) {
+      return LuLeaf;
+    }
+    if (
+      text.includes("enzyme") ||
+      text.includes("chemical") ||
+      text.includes("reaction") ||
+      text.includes("acid") ||
+      text.includes("molecule") ||
+      text.includes("food tests") ||
+      text.includes("nutrition") ||
+      text.includes("digestion") ||
+      text.includes("fermentation")
+    ) {
+      return FaFlask;
+    }
+    if (
+      text.includes("current") ||
+      text.includes("electric") ||
+      text.includes("power") ||
+      text.includes("energy") ||
+      text.includes("charge") ||
+      text.includes("force") ||
+      text.includes("waves") ||
+      text.includes("sound")
+    ) {
+      return LuBolt;
+    }
+    if (
+      text.includes("respiration") ||
+      text.includes("breathing") ||
+      text.includes("heart") ||
+      text.includes("blood") ||
+      text.includes("kidney") ||
+      text.includes("immune") ||
+      text.includes("disease") ||
+      text.includes("vaccination") ||
+      text.includes("gas exchange") ||
+      text.includes("circulatory")
+    ) {
+      return LuHeartPulse;
+    }
+    if (
+      text.includes("osmosis") ||
+      text.includes("diffusion") ||
+      text.includes("transport") ||
+      text.includes("translocation") ||
+      text.includes("water")
+    ) {
+      return LuDroplet;
+    }
+    if (
+      text.includes("classification") ||
+      text.includes("ecosystem") ||
+      text.includes("organism") ||
+      text.includes("biodiversity") ||
+      text.includes("pollution") ||
+      text.includes("sustainability") ||
+      text.includes("population") ||
+      text.includes("food chain")
+    ) {
+      return LuGlobe;
+    }
+    return LuLayers;
   };
 
   const SUBJECT_LABEL: Record<Subject, string> = {
@@ -509,31 +619,67 @@ function TopicsDrawer({
         </DrawerHeader>
         <div className="px-4 pb-6 overflow-auto">
           <FilterControls
-            onAll={() => onChange(allTriMap(allKeys))}
-            onRandom={() => onChange(randomTriMap(ALL_TOPIC_KEYS))}
+            onAll={() => onChange(allTriMap(unlockedKeys))}
+            onRandom={() => onChange(randomTriMap(unlockedTopicKeys))}
             onReset={() => onChange(buildTriMap(allKeys))}
           />
           <div className="space-y-5 max-w-2xl mx-auto">
             {grouped.map((group) => (
               <div key={group.subject}>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
                   {group.label}
                 </p>
                 <div className="space-y-2">
                   {group.topics.map((topic) => {
                     const isOpen = expanded[topic.key] ?? map[topic.key] === true;
+                    const topicLocked = isLocked?.(topic.key) ?? false;
+                    const topicColors = SUBJECT_COLORS[topic.subject];
+                    const TopicIcon = getTopicIcon(topic.label);
                     return (
                       <Collapsible
                         key={topic.key}
                         open={isOpen}
                         onOpenChange={(o) => setExpanded((e) => ({ ...e, [topic.key]: o }))}
                       >
-                        <div className="flex items-center gap-2 rounded-lg bg-muted/30 px-2 py-1.5">
-                          <TriCheckbox
-                            value={map[topic.key] ?? null}
-                            onChange={(v) => onTopicChange(topic.key, v)}
-                            label={<span className="font-bold">{topic.label}</span>}
-                          />
+                        <div className="flex items-center gap-3 rounded-2xl bg-muted/30 px-4 py-3 text-base">
+                          {topicLocked ? (
+                            <button
+                              type="button"
+                              onClick={() => goToPricing()}
+                              className="flex items-center gap-3 text-left font-semibold text-muted-foreground hover:text-foreground"
+                            >
+                              <span
+                                className={cn(
+                                  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
+                                  topicColors.soft,
+                                  topicColors.ring,
+                                )}
+                              >
+                                <TopicIcon size={16} />
+                              </span>
+                              <span>{topic.label}</span>
+                              <span className="text-primary text-xs ml-1">Pro</span>
+                            </button>
+                          ) : (
+                            <TriCheckbox
+                              value={map[topic.key] ?? null}
+                              onChange={(v) => onTopicChange(topic.key, v)}
+                              label={
+                                <span className="flex items-center gap-3 font-semibold text-base">
+                                  <span
+                                    className={cn(
+                                      "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
+                                      topicColors.soft,
+                                      topicColors.ring,
+                                    )}
+                                  >
+                                    <TopicIcon size={16} />
+                                  </span>
+                                  <span>{topic.label}</span>
+                                </span>
+                              }
+                            />
+                          )}
                           <CollapsibleTrigger asChild>
                             <button type="button" className="ml-auto p-1 hover:bg-muted rounded">
                               <LuChevronDown
@@ -545,26 +691,34 @@ function TopicsDrawer({
                         </div>
                         <CollapsibleContent>
                           <div className="ml-6 mt-1 space-y-1">
-                            {topic.lessons.map((l) => (
-                              isLocked?.(l.key) ? (
+                            {topic.lessons.map((l) =>
+                              isLessonLocked(topic.key, l.key) ? (
                                 <button
                                   key={l.key}
                                   type="button"
                                   onClick={() => goToPricing()}
-                                  className="flex items-center w-full text-left rounded-md px-1 py-0.5 hover:bg-accent transition"
+                                  className="flex items-center w-full text-left rounded-lg px-2 py-1 hover:bg-accent/40 transition"
                                 >
-                                  <span className="text-xs text-muted-foreground">{l.label}</span>
-                                  <span className="ml-auto text-[10px] font-bold text-primary">Pro</span>
+                                  <span className="text-sm text-muted-foreground">{l.label}</span>
+                                  <span className="ml-auto text-xs font-bold text-primary">
+                                    Pro
+                                  </span>
                                 </button>
                               ) : (
                                 <TriCheckbox
                                   key={l.key}
                                   value={map[l.key] ?? null}
-                                  onChange={(v) => onChange({ ...map, [l.key]: v })}
-                                  label={l.label}
+                                  onChange={(v) => {
+                                    if (isLessonLocked(topic.key, l.key)) {
+                                      goToPricing();
+                                      return;
+                                    }
+                                    onChange({ ...map, [l.key]: v });
+                                  }}
+                                  label={<span className="text-sm">{l.label}</span>}
                                 />
-                              )
-                            ))}
+                              ),
+                            )}
                           </div>
                         </CollapsibleContent>
                       </Collapsible>
@@ -578,6 +732,22 @@ function TopicsDrawer({
       </DrawerContent>
     </Drawer>
   );
+}
+
+function groupedTopicKeys(
+  topics: typeof TOPICS,
+  isLessonLocked: (topicKey: string, lessonKey: string) => boolean,
+  isLocked?: (key: string) => boolean,
+) {
+  return topics.flatMap((topic) => {
+    if (isLocked?.(topic.key)) return [];
+    return [
+      topic.key,
+      ...topic.lessons
+        .filter((lesson) => !isLessonLocked(topic.key, lesson.key))
+        .map((lesson) => lesson.key),
+    ];
+  });
 }
 
 function SkillsDropdown({ map, onChange }: { map: TriMap; onChange: (m: TriMap) => void }) {

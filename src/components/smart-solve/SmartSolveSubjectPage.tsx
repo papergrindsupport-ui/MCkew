@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LuLayoutGrid, LuList, LuPlay, LuFileCheck, LuSparkles, LuHammer } from "react-icons/lu";
+import { FaAtom, FaDna, FaFlask } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import {
   getMergedAnswerKeyForPaper,
@@ -12,7 +13,7 @@ import {
 } from "@/admin/merge";
 // import { getPaperQuestions } from "@/data/paperQuestions";
 import { subscribeAdminStore } from "@/admin/store";
-import { type Subject, SUBJECT_LABEL } from "@/data/paperData";
+import { type Subject, SUBJECT_COLORS, SUBJECTS } from "@/data/paperData";
 import { PaperSessionProvider } from "@/components/papers/PaperSession";
 import { getAnswerKey } from "@/data/answerKey";
 import type { Question, OptionLetter } from "@/data/questionData";
@@ -22,6 +23,7 @@ import {
   buildQuestionRows,
   applyQuestionFilters,
   makeDefaultQuestionFilters,
+  sanitizeQuestionFilters,
   type QuestionFilters,
 } from "@/components/smart-solve/filterQuestions";
 import { QuestionGenerator } from "@/components/smart-solve/QuestionGenerator";
@@ -47,6 +49,12 @@ import {
   selectedIdsFromString,
   selectedIdsToString,
 } from "@/components/smart-solve/useUrlState";
+
+const SUBJECT_ICON: Record<Subject, typeof FaDna> = {
+  bio: FaDna,
+  chem: FaFlask,
+  phys: FaAtom,
+};
 
 interface Props {
   /** Restrict to this subject. Omit for /smart-solve-all. */
@@ -77,10 +85,16 @@ export function SmartSolveSubjectPage({ subject, title }: Props) {
         hasFilterParams = true;
       }
     });
-    if (hasFilterParams) return paramsToFilters(defaultFilters, params);
+    if (hasFilterParams) {
+      return sanitizeQuestionFilters(paramsToFilters(defaultFilters, params), subject);
+    }
     try {
       const raw = window.localStorage.getItem(filtersStorageKey);
-      if (raw) return { ...defaultFilters, ...JSON.parse(raw) } as QuestionFilters;
+      if (raw)
+        return sanitizeQuestionFilters(
+          { ...defaultFilters, ...JSON.parse(raw) } as QuestionFilters,
+          subject,
+        );
     } catch {
       /* ignore */
     }
@@ -103,15 +117,19 @@ export function SmartSolveSubjectPage({ subject, title }: Props) {
     try {
       const raw = window.localStorage.getItem(filtersStorageKey);
       if (raw) {
-        setFilters({ ...defaultFilters, ...JSON.parse(raw) } as QuestionFilters);
+        setFilters(
+          sanitizeQuestionFilters(
+            { ...defaultFilters, ...JSON.parse(raw) } as QuestionFilters,
+            subject,
+          ),
+        );
       } else {
         setFilters(defaultFilters);
       }
     } catch {
       /* ignore */
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersStorageKey]);
+  }, [defaultFilters, filtersStorageKey, subject]);
 
   // Mirror filters → URL whenever they change. Diffed against defaults so the
   // URL stays clean when the user is on the default view.
@@ -285,7 +303,6 @@ function Inner({
     if (sq) sStore.setQuestionScope(sq as never);
     const cf = params.get("cf");
     if (cf != null) sStore.setConsiderFilters(cf === "1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Mirror state → URL ──
@@ -367,6 +384,7 @@ function Inner({
             <p className="text-sm text-muted-foreground">
               {filtered.length} question{filtered.length === 1 ? "" : "s"} ready to solve
             </p>
+            {!subject && <AllSubjectsLegend />}
           </div>
           <div className="flex items-center gap-2">
             <SearchControl variant="questions" />
@@ -380,6 +398,7 @@ function Inner({
           setFilters={setFilters}
           resultCount={filtered.length}
           showSubjectFilter={!subject}
+          subject={subject}
         />
 
         {/* Mode switcher */}
@@ -468,6 +487,30 @@ function Inner({
         }))}
       />
       <BuilderMount subject={subject} filtered={filtered} />
+    </div>
+  );
+}
+
+function AllSubjectsLegend() {
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {SUBJECTS.map((entry) => {
+        const Icon = SUBJECT_ICON[entry.key];
+        const colors = SUBJECT_COLORS[entry.key];
+        return (
+          <span
+            key={entry.key}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
+              colors.soft,
+              colors.ring,
+            )}
+          >
+            <Icon size={12} />
+            {entry.label}
+          </span>
+        );
+      })}
     </div>
   );
 }

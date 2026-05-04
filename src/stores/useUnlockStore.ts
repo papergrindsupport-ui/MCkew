@@ -4,6 +4,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { TOPICS } from "@/data/topics";
 
 // Years 2016–2022 are locked by default until purchased.
 export const LOCKED_YEARS: readonly string[] = [
@@ -16,8 +17,14 @@ export const LOCKED_YEARS: readonly string[] = [
   "2022",
 ];
 
-// A couple of premium topic keys (must match keys in src/data/topics.ts).
-export const LOCKED_TOPICS: readonly string[] = ["genetics", "inorganic"];
+const UNLOCKED_TOPICS_PER_SUBJECT = 3;
+const topicOrderBySubject = new Map<string, number>();
+
+export const LOCKED_TOPICS: readonly string[] = TOPICS.filter((topic) => {
+  const index = topicOrderBySubject.get(topic.subject) ?? 0;
+  topicOrderBySubject.set(topic.subject, index + 1);
+  return index >= UNLOCKED_TOPICS_PER_SUBJECT;
+}).map((topic) => topic.key);
 
 interface UnlockState {
   unlocked: boolean; // master flag — true after "Unlock Now"
@@ -36,7 +43,7 @@ export const useUnlockStore = create<UnlockState>()(
       unlockAll: () => set({ unlocked: true }),
       lockAll: () => set({ unlocked: false }),
     }),
-    { name: "smart-solve-unlock-store-v1" },
+    { name: "smart-solve-unlock-store-v2" },
   ),
 );
 
