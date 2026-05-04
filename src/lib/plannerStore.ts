@@ -18,8 +18,8 @@ export const ALL_SESSIONS: SessionKey[] = ["mj", "fm", "on"];
 export const ALL_VARIANTS: Variant[] = ["v1", "v2", "v3"];
 
 export const SESSION_LABEL: Record<SessionKey, string> = {
-  mj: "May/June",
   fm: "Feb/March",
+  mj: "May/June",
   on: "Oct/Nov",
 };
 

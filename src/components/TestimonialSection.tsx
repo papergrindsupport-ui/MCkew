@@ -39,7 +39,9 @@ export default function TestimonialSection() {
             — Salah Y., founder of MCkew{" "}
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="cursor-help underline decoration-dotted underline-offset-2">/s</span>
+                <span className="cursor-help underline decoration-dotted underline-offset-2">
+                  /s
+                </span>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-[260px] text-xs leading-relaxed">
                 /s MEANS SARCASM but try the site it&apos;s good
