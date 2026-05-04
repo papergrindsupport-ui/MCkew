@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from "react";
 
 export type Subject = "bio" | "chem" | "phys";
-export type SessionKey = "mj" | "fm" | "on";
+export type SessionKey = "fm" | "mj" | "on";
 export type Variant = "v1" | "v2" | "v3";
 export type Layout =
   | "years-cols_sessions-rows_variants-subrows"
@@ -14,7 +14,7 @@ export type Layout =
   | "years-rows_sessions-cols_variants-subrows";
 
 export const ALL_YEARS: number[] = Array.from({ length: 2026 - 2016 + 1 }, (_, i) => 2016 + i);
-export const ALL_SESSIONS: SessionKey[] = ["mj", "fm", "on"];
+export const ALL_SESSIONS: SessionKey[] = ["fm", "mj", "on"];
 export const ALL_VARIANTS: Variant[] = ["v1", "v2", "v3"];
 
 export const SESSION_LABEL: Record<SessionKey, string> = {
