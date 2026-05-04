@@ -20,7 +20,7 @@ import {
   type VolunteerApplication,
   ROLE_INFO,
 } from "@/components/volunteer/volunteer-types";
-import heroImg from "@/assets/volunteer-hero.jpg";
+import heroImg from "@/assets/volunteer-hero.svg";
 
 type View = "landing" | "wizard" | "thanks";
 
@@ -154,8 +154,6 @@ function Volunteer() {
                     <motion.img
                       src={heroImg}
                       alt="Two cartoon hands reaching toward each other"
-                      width={1536}
-                      height={1024}
                       className="w-full rounded-3xl shadow-2xl"
                       animate={{ y: [0, -8, 0] }}
                       transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}

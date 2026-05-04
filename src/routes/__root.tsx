@@ -108,11 +108,11 @@ export const Route = createRootRoute({
       },
       {
         property: "og:image",
-        content: "/favicons/android-chrome-512x512.png",
+        content: "/images/og-mckew.png",
       },
       {
         name: "twitter:image",
-        content: "/favicons/android-chrome-512x512.png",
+        content: "/images/og-mckew.png",
       },
     ],
     links: [
