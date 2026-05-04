@@ -22,7 +22,7 @@ export function EnvRoleBadges({ flags, className }: { flags: EnvRoleFlags; class
 
   return (
     <span className={cn("inline-flex items-center gap-1 flex-wrap", className)}>
-      {flags.admin && !flags.volunteer && (
+      {flags.admin && (
         <Pill className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
           <LuShieldCheck size={10} aria-hidden />
           ADMIN

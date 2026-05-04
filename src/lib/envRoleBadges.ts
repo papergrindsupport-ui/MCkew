@@ -30,10 +30,9 @@ export function roleFlagsForCandidateIds(
   const admin = parseCommaUserIds(import.meta.env.VITE_ADMIN_USERIDS as string | undefined);
   const volunteer = parseCommaUserIds(import.meta.env.VITE_VOLUNTEER_USERIDS as string | undefined);
   const developer = parseCommaUserIds(import.meta.env.VITE_DEVELOPER_USERIDS as string | undefined);
-  const isVolunteer = idHitsList(ids, volunteer);
   return {
-    admin: idHitsList(ids, admin) || isVolunteer,
-    volunteer: isVolunteer,
+    admin: idHitsList(ids, admin),
+    volunteer: idHitsList(ids, volunteer),
     developer: idHitsList(ids, developer),
   };
 }
