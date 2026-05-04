@@ -2,19 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { LuShieldCheck, LuHeartHandshake, LuCode } from "react-icons/lu";
 import { cn } from "@/lib/utils";
 import type { EnvRoleFlags } from "@/lib/envRoleBadges";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-function Pill({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function Pill({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <span
       className={cn(
@@ -27,18 +17,12 @@ function Pill({
   );
 }
 
-export function EnvRoleBadges({
-  flags,
-  className,
-}: {
-  flags: EnvRoleFlags;
-  className?: string;
-}) {
+export function EnvRoleBadges({ flags, className }: { flags: EnvRoleFlags; className?: string }) {
   if (!flags.admin && !flags.volunteer && !flags.developer) return null;
 
   return (
     <span className={cn("inline-flex items-center gap-1 flex-wrap", className)}>
-      {flags.admin && (
+      {flags.admin && !flags.volunteer && (
         <Pill className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
           <LuShieldCheck size={10} aria-hidden />
           ADMIN

@@ -23,14 +23,17 @@ function idHitsList(ids: string[], list: string[]): boolean {
  * Match role lists from VITE_* env (same pattern as admin FAB).
  * Pass every stable id you have: Clerk sub, DB profile uuid, public_id, username.
  */
-export function roleFlagsForCandidateIds(candidates: Array<string | null | undefined>): EnvRoleFlags {
+export function roleFlagsForCandidateIds(
+  candidates: Array<string | null | undefined>,
+): EnvRoleFlags {
   const ids = candidates.map((c) => String(c ?? "").trim()).filter(Boolean);
   const admin = parseCommaUserIds(import.meta.env.VITE_ADMIN_USERIDS as string | undefined);
   const volunteer = parseCommaUserIds(import.meta.env.VITE_VOLUNTEER_USERIDS as string | undefined);
   const developer = parseCommaUserIds(import.meta.env.VITE_DEVELOPER_USERIDS as string | undefined);
+  const isVolunteer = idHitsList(ids, volunteer);
   return {
-    admin: idHitsList(ids, admin),
-    volunteer: idHitsList(ids, volunteer),
+    admin: idHitsList(ids, admin) || isVolunteer,
+    volunteer: isVolunteer,
     developer: idHitsList(ids, developer),
   };
 }
