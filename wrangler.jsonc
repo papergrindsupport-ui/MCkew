@@ -4,4 +4,24 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+
+  "vars": {
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "SUPABASE_URL": "https://vsfakqtjitogukbyhngq.supabase.co",
+    "VITE_SUPABASE_PROJECT_ID": "vsfakqtjitogukbyhngq",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "VITE_SUPABASE_URL": "https://vsfakqtjitogukbyhngq.supabase.co",
+
+    "VITE_ADMIN_USERIDS": "user_3D3InujjcBJd6MHVL5WqzP3psbM,user_3D6TJoozXfTb6lGW9f10ct6DmSm",
+    "VITE_VOLUNTEER_USERIDS": "",
+    "VITE_DEVELOPER_USERIDS": "",
+
+    "VITE_CLERK_PUBLISHABLE_KEY": "pk_test_c3F1YXJlLXRlYWwtOTQuY2xlcmsuYWNjb3VudHMuZGV2JA",
+
+    "UPLOADTHING_APP_ID": "l79lvybohp",
+    "CRISP_WEBSITE_ID": "503be729-26c5-4d0a-ba03-d274f4063494",
+
+    "PAYPAL_CLIENT_ID": "AQgwc51F07ZCE8NirERVXQsydUtdAeeUNo7N_A4Bm2nxEV_BuGhPMcAsjyDawMm2lmVkf4EXPW9I_0Py",
+    "PAYPAL_ENVIRONMENT": "live",
+  },
 }
