@@ -13,8 +13,8 @@
     "VITE_SUPABASE_URL": "https://vsfakqtjitogukbyhngq.supabase.co",
 
     "VITE_ADMIN_USERIDS": "user_3D3InujjcBJd6MHVL5WqzP3psbM,user_3D6TJoozXfTb6lGW9f10ct6DmSm",
-    "VITE_VOLUNTEER_USERIDS": "",
-    "VITE_DEVELOPER_USERIDS": "",
+    "VITE_VOLUNTEER_USERIDS": "user_3DH5lgPUaEKuM1ba2kDO1R6w8Iu",
+    "VITE_DEVELOPER_USERIDS": "user_3D6TJoozXfTb6lGW9f10ct6DmSm",
 
     "VITE_CLERK_PUBLISHABLE_KEY": "pk_test_c3F1YXJlLXRlYWwtOTQuY2xlcmsuYWNjb3VudHMuZGV2JA",
 
