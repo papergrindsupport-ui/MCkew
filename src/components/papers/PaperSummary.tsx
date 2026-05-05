@@ -17,10 +17,14 @@ import { parsePaperId, PAPERS } from "@/data/paperData";
 import {
   getPaperThresholds,
   pickThresholds,
-  gradeFor,
   availableFormats,
+  LETTER_ORDER,
+  NUMBER_ORDER,
   type AggregateKind,
   type GradeFormat,
+  type LetterGrade,
+  type NumberGrade,
+  type PaperThresholds,
 } from "@/data/gradeThresholds";
 import { TOPICS, SKILLS } from "@/data/topics";
 import { AIFeedbackPanel } from "@/components/ai/AIFeedbackPanel";
@@ -65,7 +69,26 @@ export function PaperSummary() {
   const formats = availableFormats(thresholds);
   const activeFormat: GradeFormat =
     format && formats.includes(format) ? format : (formats[0] ?? "letter");
-  const grade = gradeFor(session.totalMark, thresholds, activeFormat);
+
+  const grade = useMemo(
+    () => gradeForComponent(session.totalMark, thresholds, activeFormat),
+    [session.totalMark, thresholds, activeFormat],
+  );
+
+  const gradeBoundaryNote = useMemo(
+    () => boundaryComparisonNote(session.totalMark, thresholds, activeFormat, grade),
+    [session.totalMark, thresholds, activeFormat, grade],
+  );
+
+  const gradeNote = useMemo(() => {
+    if (activeFormat === "number" && grade === "8") {
+      return "A*/9 do not exist for individual components like paper-2, but an 8 here gives you a solid chance at A*/9 overall.";
+    }
+    if (activeFormat === "letter" && grade === "A") {
+      return "A*/9 do not exist for individual components like paper-2, but an A here gives you a solid chance at A*/9 overall.";
+    }
+    return null;
+  }, [activeFormat, grade]);
 
   const missed = useMemo(
     () =>
@@ -91,6 +114,116 @@ export function PaperSummary() {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
+  function gradeForComponent(
+    marks: number,
+    thresholds: PaperThresholds,
+    format: GradeFormat,
+  ): string {
+    if (format === "letter") {
+      const t = thresholds.letter;
+      if (!t) return "—";
+      const order = LETTER_ORDER.filter((grade) => grade !== "A*") as LetterGrade[];
+      for (const g of order) {
+        if (marks >= t[g]) return g;
+      }
+    } else {
+      const t = thresholds.number;
+      if (!t) return "—";
+      const order = NUMBER_ORDER.slice(1) as NumberGrade[];
+      for (const g of order) {
+        if (marks >= t[g]) return g;
+      }
+    }
+    return "U";
+  }
+
+  function boundaryComparisonNote(
+    marks: number,
+    thresholds: PaperThresholds,
+    format: GradeFormat,
+    grade: string,
+  ): string | null {
+    if (format === "letter") {
+      const t = thresholds.letter;
+      if (!t) return null;
+      const order = LETTER_ORDER.filter((g) => g !== "A*") as LetterGrade[];
+      const currentIndex = order.indexOf(grade as LetterGrade);
+      if (currentIndex === -1) return null;
+
+      const currentGrade = order[currentIndex];
+      const currentBoundary = t[currentGrade];
+      if (currentBoundary == null) return null;
+
+      const neighbors = [] as Array<{ grade: string; boundary: number }>;
+      if (currentIndex > 0) {
+        const higherGrade = order[currentIndex - 1];
+        const higherBoundary = t[higherGrade];
+        if (higherBoundary != null) {
+          neighbors.push({ grade: higherGrade, boundary: higherBoundary });
+        }
+      }
+      neighbors.push({ grade: currentGrade, boundary: currentBoundary });
+      if (currentIndex < order.length - 1) {
+        const lowerGrade = order[currentIndex + 1];
+        const lowerBoundary = t[lowerGrade];
+        if (lowerBoundary != null) {
+          neighbors.push({ grade: lowerGrade, boundary: lowerBoundary });
+        }
+      }
+
+      const nearest = neighbors.reduce((best, next) =>
+        Math.abs(marks - next.boundary) < Math.abs(marks - best.boundary) ? next : best,
+      );
+
+      const diff = marks - nearest.boundary;
+      const marksText = `${Math.abs(diff)} mark${Math.abs(diff) === 1 ? "" : "s"}`;
+      if (diff === 0) {
+        return `On the ${nearest.grade} boundary.`;
+      }
+      const direction = diff > 0 ? "above" : "below";
+      return `${marksText} ${direction} the ${nearest.grade} boundary.`;
+    }
+
+    const t = thresholds.number;
+    if (!t) return null;
+    const order = NUMBER_ORDER.slice(1) as NumberGrade[];
+    const currentIndex = order.indexOf(grade as NumberGrade);
+    if (currentIndex === -1) return null;
+
+    const currentGrade = order[currentIndex];
+    const currentBoundary = t[currentGrade];
+    if (currentBoundary == null) return null;
+
+    const neighbors = [] as Array<{ grade: string; boundary: number }>;
+    if (currentIndex > 0) {
+      const higherGrade = order[currentIndex - 1];
+      const higherBoundary = t[higherGrade];
+      if (higherBoundary != null) {
+        neighbors.push({ grade: higherGrade, boundary: higherBoundary });
+      }
+    }
+    neighbors.push({ grade: currentGrade, boundary: currentBoundary });
+    if (currentIndex < order.length - 1) {
+      const lowerGrade = order[currentIndex + 1];
+      const lowerBoundary = t[lowerGrade];
+      if (lowerBoundary != null) {
+        neighbors.push({ grade: lowerGrade, boundary: lowerBoundary });
+      }
+    }
+
+    const nearest = neighbors.reduce((best, next) =>
+      Math.abs(marks - next.boundary) < Math.abs(marks - best.boundary) ? next : best,
+    );
+
+    const diff = marks - nearest.boundary;
+    const marksText = `${Math.abs(diff)} mark${Math.abs(diff) === 1 ? "" : "s"}`;
+    if (diff === 0) {
+      return `On the ${nearest.grade} boundary.`;
+    }
+    const direction = diff > 0 ? "above" : "below";
+    return `${marksText} ${direction} the ${nearest.grade} boundary.`;
+  }
+
   return (
     <motion.section
       ref={ref}
@@ -115,6 +248,10 @@ export function PaperSummary() {
             <div className="text-2xl sm:text-3xl font-bold inline-flex items-center gap-2 text-primary">
               <LuTarget size={20} /> {grade}
             </div>
+            {gradeBoundaryNote && (
+              <div className="text-sm text-muted-foreground mt-1">{gradeBoundaryNote}</div>
+            )}
+            {gradeNote && <div className="text-sm text-muted-foreground mt-1">{gradeNote}</div>}
           </div>
           <div className="text-sm text-muted-foreground mt-1">
             {missed.length === 0
@@ -165,7 +302,7 @@ export function PaperSummary() {
                     : "border-border/60 hover:border-primary/40",
                 )}
               >
-                A–G
+                A*-G
               </button>
             )}
             {formats.includes("number") && (

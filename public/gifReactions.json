@@ -292,7 +292,7 @@
     "category": "page-open",
     "position": "bottom-right",
     "size": "medium",
-    "duration": 2600,
+    "duration": 2000,
     "weight": 2,
     "loop": "playonce"
   },

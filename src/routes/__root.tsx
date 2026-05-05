@@ -182,7 +182,7 @@ function RootComponent() {
             <Outlet />
             <PageTransition />
             <Suspense fallback={null}>
-              <CrispChat />
+              {/* <CrispChat /> */}
               <GifPageReactions />
               <MouseParticlesClient />
               <StreakWidget />
@@ -193,7 +193,7 @@ function RootComponent() {
               <BlurRevealHandler />
               <ImageSearchDropOverlay />
               <PlannerTasksHydrator />
-              <CrispChat />
+              {/* <CrispChat /> */}
               <AdminStoreHydrator />
             </Suspense>
             <HotToaster

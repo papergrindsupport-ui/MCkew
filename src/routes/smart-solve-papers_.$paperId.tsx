@@ -24,6 +24,7 @@ import {
 import { type Question } from "@/data/questionData";
 import { getPaperQuestions } from "@/data/paperQuestions";
 import { getMergedPaperById, getMergedQuestionsForPaper } from "@/admin/merge";
+import { createApiClient } from "@/lib/apiClient";
 import { QuestionView } from "@/components/papers/QuestionView";
 import { PaperSessionProvider, usePaperSession } from "@/components/papers/PaperSession";
 import { PaperSettingsButton } from "@/components/papers/PaperSettingsButton";
@@ -40,7 +41,46 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/smart-solve-papers_/$paperId")({
   loader: async ({ params }) => {
-    const paper = getMergedPaperById(params.paperId) ?? getPaperById(params.paperId);
+    let paper = getMergedPaperById(params.paperId) ?? getPaperById(params.paperId);
+
+    // If not found in local/merged data, fetch from API
+    // (handles direct link opens before AdminStoreHydrator finishes)
+    if (!paper) {
+      try {
+        const api = createApiClient();
+        const overrides = await api.getPapersOverrides();
+        const remotePaper = overrides.papers.find((p) => p.id === params.paperId);
+        if (remotePaper) {
+          // Construct a minimal Paper object from remote data
+          const parsed = parsePaperId(params.paperId);
+          if (parsed) {
+            paper = {
+              id: params.paperId,
+              subject: parsed.subject,
+              year: parsed.year,
+              session: parsed.session,
+              variant: parsed.variant,
+              title:
+                (remotePaper.title as string) ??
+                `${parsed.year} ${parsed.session} ${parsed.variant}`,
+              locked: (remotePaper.locked as boolean) ?? false,
+              difficulty: (remotePaper.difficulty as string) ?? undefined,
+              priority: (remotePaper.priority as string) ?? undefined,
+              gradeThresholds: ((remotePaper.grade_thresholds ?? []) as any[]) ?? [],
+              tags: ((remotePaper.tags ?? []) as string[]) ?? [],
+              topics: ((remotePaper.topics ?? []) as string[]) ?? [],
+              lessons: ((remotePaper.lessons ?? []) as string[]) ?? [],
+              skills: ((remotePaper.skills ?? []) as string[]) ?? [],
+              questionIds: [],
+              bentoSize: (remotePaper.bento_size as "sm" | "md" | "lg") ?? "md",
+            } as Paper;
+          }
+        }
+      } catch {
+        // Silently fail - will still throw notFound() below if no paper found
+      }
+    }
+
     if (!paper) throw notFound();
     return { paper, questions: getMergedQuestionsForPaper(params.paperId) };
   },

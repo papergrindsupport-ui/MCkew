@@ -236,6 +236,7 @@ export const PAPERS: Paper[] = (() => {
   return [
     buildPaper("bio", 2026, "Feb", "V2", 101),
     buildPaper("bio", 2025, "June", "V1", 102),
+    buildPaper("bio", 2025, "Oct", "V3", 103),
   ];
 })();
 

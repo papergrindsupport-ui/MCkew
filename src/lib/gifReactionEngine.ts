@@ -4,9 +4,9 @@
  * - Lazily fetches /gifReactions.json the first time a reaction fires.
  * - Shows at most one GIF at a time via direct DOM manipulation.
  * - Theme/page categories always show (so the user notices the transition).
- * - Correct/wrong/fullmark categories show with a 70% probability.
- * - Clicking a running-theme GIF spawns the "hanging batman" that follows
- *   the cursor for 5s and drops off screen.
+ * Correct category shows with an 80% probability; wrong/fullmark categories
+ * show with a 70% probability. Clicking a running-theme GIF spawns the
+ * "hanging batman" that follows the cursor for 5s and drops off screen.
  *
  * Can be disabled globally via useAppSettingsStore.gifReactionsEnabled.
  */
@@ -39,14 +39,15 @@ let activeTimeout: ReturnType<typeof setTimeout> | null = null;
 let overlayEl: HTMLDivElement | null = null;
 
 const SIZE_MAP: Record<string, number> = { small: 120, medium: 180, large: 260, fullscreen: 0 };
-const SHOW_CHANCE = 0.7; // 70% chance for marking / page categories
+const SHOW_CHANCE = 0.8; // 70% chance for most marking/page categories
+const CORRECT_SHOW_CHANCE = 0.8; // 80% chance for correct question reactions
 
 const POSITION_STYLES: Record<string, Partial<CSSStyleDeclaration>> = {
-  "bottom-left": { bottom: "24px", left: "24px" },
-  "bottom-center": { bottom: "24px", left: "50%", transform: "translateX(-50%)" },
-  "bottom-right": { bottom: "24px", right: "24px" },
+  "bottom-left": { bottom: "0px", left: "0px" },
+  "bottom-center": { bottom: "0px", left: "50%", transform: "translateX(-50%)" },
+  "bottom-right": { bottom: "0px", right: "0px" },
   "top-left": { top: "24px", left: "24px" },
-  "top-right": { top: "24px", right: "24px" },
+  "top-right": { top: "0px", right: "0px" },
   center: { top: "50%", left: "50%", transform: "translate(-50%, -50%)" },
 };
 
@@ -251,9 +252,10 @@ function spawnHangingBatman() {
 }
 
 /**
- * Fire a GIF reaction. Marking categories roll a 70% show chance; theme/page
- * always show. Only one GIF runs at a time — later calls while one is
- * active are ignored.
+ * Fire a GIF reaction. Correct marking reactions roll an 80% show chance;
+ * other marking/page categories roll a 70% show chance. Theme/page always
+ * show. Only one GIF runs at a time — later calls while one is active are
+ * ignored.
  */
 export async function fireGifReaction(category: GifCategory) {
   // Respect user setting (defaults to true)
@@ -263,7 +265,8 @@ export async function fireGifReaction(category: GifCategory) {
   const alwaysShow =
     category === "theme-light" || category === "theme-dark" || category === "page-open";
 
-  if (!alwaysShow && Math.random() > SHOW_CHANCE) return;
+  const chance = category === "correct" ? CORRECT_SHOW_CHANCE : SHOW_CHANCE;
+  if (!alwaysShow && Math.random() > chance) return;
   if (activeTimeout) return;
 
   const data = await ensureData();
@@ -288,7 +291,7 @@ export async function fireGifReaction(category: GifCategory) {
   el.style.cssText = "";
 
   if (isFullscreen) {
-    // Fullscreen: cover entire screen
+    // Fullscreen: cover entire screen edge-to-edge
     Object.assign(el.style, {
       position: "fixed",
       top: "0",
@@ -298,20 +301,18 @@ export async function fireGifReaction(category: GifCategory) {
       zIndex: "9999",
       pointerEvents: "none",
       display: "block",
-      background: "rgba(0,0,0,0.85)",
     });
 
     const img = await createDecodedImage(gif.src, true);
     Object.assign(img.style, {
       position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      maxWidth: "90vw",
-      maxHeight: "85vh",
-      width: "auto",
-      height: "auto",
-      borderRadius: "12px",
+      top: "0",
+      left: "0",
+      width: "100vw",
+      height: "100vh",
+      objectFit: "cover",
+      margin: "0",
+      padding: "0",
     });
 
     el.innerHTML = "";
@@ -362,9 +363,13 @@ export async function fireGifReaction(category: GifCategory) {
 export function fireMarkingReaction(awarded: number, max: number) {
   if (max <= 0) return;
   const pct = awarded / max;
-  if (pct === 1) fireGifReaction("fullmark");
-  else if (pct >= 0.5) fireGifReaction("correct");
-  else fireGifReaction("wrong");
+  if (max > 1 && pct === 1) {
+    fireGifReaction("fullmark");
+  } else if (pct >= 0.5) {
+    fireGifReaction("correct");
+  } else {
+    fireGifReaction("wrong");
+  }
 }
 
 export function fireThemeReaction(isDark: boolean) {

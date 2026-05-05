@@ -179,6 +179,8 @@ function ThresholdsBuilder({
 }) {
   const [hasNumber, setHasNumber] = useState(!!value.number);
   const [hasLetter, setHasLetter] = useState(!!value.letter);
+  const ADMIN_NUMBER_ORDER = NUMBER_ORDER.slice(1) as NumberGrade[];
+  const ADMIN_LETTER_ORDER = LETTER_ORDER.filter((g) => g !== "A*") as LetterGrade[];
 
   function setNumberCell(g: NumberGrade, mark: number) {
     const cur =
@@ -217,7 +219,7 @@ function ThresholdsBuilder({
                   });
               }}
             />
-            9–1 format
+            8–1 format
           </label>
           <label className="flex items-center gap-1.5">
             <input
@@ -246,9 +248,9 @@ function ThresholdsBuilder({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {hasNumber && (
           <div>
-            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-1.5">9–1</h4>
+            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-1.5">8–1</h4>
             <div className="grid grid-cols-2 gap-1">
-              {NUMBER_ORDER.map((g) => (
+              {ADMIN_NUMBER_ORDER.map((g) => (
                 <ThresholdInput
                   key={g}
                   label={g}
@@ -263,7 +265,7 @@ function ThresholdsBuilder({
           <div>
             <h4 className="text-xs font-bold uppercase text-muted-foreground mb-1.5">A–G</h4>
             <div className="grid grid-cols-2 gap-1">
-              {LETTER_ORDER.map((g) => (
+              {ADMIN_LETTER_ORDER.map((g) => (
                 <ThresholdInput
                   key={g}
                   label={g}
@@ -278,6 +280,12 @@ function ThresholdsBuilder({
           <p className="text-xs text-muted-foreground col-span-2">
             Enable at least one format above to define thresholds.
           </p>
+        )}
+        {(hasNumber || hasLetter) && (
+          <div className="text-xs text-muted-foreground col-span-2">
+            Enter paper-2 thresholds only for A–G and 8–1. A* and 9 do not apply to individual
+            components.
+          </div>
         )}
       </div>
     </div>
