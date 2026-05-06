@@ -172,12 +172,21 @@ export function PaperSessionProvider({
   /** When true, prevent answering/submitting/edits. */
   readOnly?: boolean;
 }) {
-  const [settings, setSettings] = useState<PaperSettings>({
-    ...DEFAULT_SETTINGS,
-    ...(initialState?.settings ?? {}),
-    ...(initialSettings ?? {}),
-  });
   const initialPersistKey = storageKey ?? paperId;
+  const [settings, setSettings] = useState<PaperSettings>(() => {
+    const base = {
+      ...DEFAULT_SETTINGS,
+      ...(initialState?.settings ?? {}),
+      ...(initialSettings ?? {}),
+    };
+    if (!initialPersistKey || typeof window === "undefined") return base;
+    try {
+      const persisted = JSON.parse(localStorage.getItem(`${initialPersistKey}:settings`) ?? "null");
+      return persisted ? ({ ...base, ...persisted } as PaperSettings) : base;
+    } catch {
+      return base;
+    }
+  });
   const [selected, setSelected] = useState<Record<string, OptionLetter | undefined>>(() => {
     if (initialState?.selected) return initialState.selected;
     if (!initialPersistKey || typeof window === "undefined") return {};
@@ -209,13 +218,43 @@ export function PaperSessionProvider({
       return false;
     }
   });
-  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>(() => initialState?.reviewFilter ?? "all");
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>(
+    () => initialState?.reviewFilter ?? "all",
+  );
+
+  const updateSettings = useCallback(
+    (nextSettings: PaperSettings) => {
+      setSettings((currentSettings) => {
+        if (currentSettings.submissionMode !== nextSettings.submissionMode) {
+          setStatus((curStatus) => {
+            const nextStatus: Record<string, QuestionStatus> = { ...curStatus };
+            for (const qid of Object.keys(nextStatus)) {
+              if (nextStatus[qid] === "submitted") {
+                nextStatus[qid] = selected[qid] != null ? "answered" : "unanswered";
+              }
+            }
+            return nextStatus;
+          });
+          setPaperSubmitted(false);
+          setReviewFilter("all");
+        }
+        return nextSettings;
+      });
+    },
+    [selected],
+  );
 
   const [timers, setTimers] = useState<TimerCfg[]>(() => initialState?.timers ?? []);
-  const [stopwatchEnabled, setStopwatchEnabled] = useState(() => initialState?.stopwatchEnabled ?? false);
-  const [stopwatchRunning, setStopwatchRunning] = useState(() => initialState?.stopwatchRunning ?? false);
+  const [stopwatchEnabled, setStopwatchEnabled] = useState(
+    () => initialState?.stopwatchEnabled ?? false,
+  );
+  const [stopwatchRunning, setStopwatchRunning] = useState(
+    () => initialState?.stopwatchRunning ?? false,
+  );
   const [stopwatchSec, setStopwatchSec] = useState(() => initialState?.stopwatchSec ?? 0);
-  const [stopwatchLaps, setStopwatchLaps] = useState<number[]>(() => initialState?.stopwatchLaps ?? []);
+  const [stopwatchLaps, setStopwatchLaps] = useState<number[]>(
+    () => initialState?.stopwatchLaps ?? [],
+  );
 
   const answerKey = useMemo(() => getAnswerKey(paperId), [paperId]);
 
@@ -253,6 +292,14 @@ export function PaperSessionProvider({
       localStorage.setItem(`${persistKey}:status`, JSON.stringify(status));
     } catch {}
   }, [status, persistKey]);
+
+  useEffect(() => {
+    if (!persistKey || typeof window === "undefined") return;
+    if (readOnly) return;
+    try {
+      localStorage.setItem(`${persistKey}:settings`, JSON.stringify(settings));
+    } catch {}
+  }, [settings, persistKey]);
 
   // Auto-scroll to the last-viewed question (if any) once on mount.
   // Skipped for synthetic smart-solve-* / exam-preview sessions which manage
@@ -308,7 +355,16 @@ export function PaperSessionProvider({
         }
       }
     },
-    [readOnly, settings.submissionMode, status, selected, eliminated, questions, correctFor, paperId],
+    [
+      readOnly,
+      settings.submissionMode,
+      status,
+      selected,
+      eliminated,
+      questions,
+      correctFor,
+      paperId,
+    ],
   );
 
   const toggleEliminate = useCallback(
@@ -370,12 +426,15 @@ export function PaperSessionProvider({
     bigCelebrate();
   }, [readOnly, questions, status, selected, correctFor, paperId]);
 
-  const reattemptQuestion = useCallback((qid: string) => {
-    if (readOnly) return;
-    setSelected((cur) => ({ ...cur, [qid]: undefined }));
-    setStatus((cur) => ({ ...cur, [qid]: "unanswered" }));
-    setEliminated((cur) => ({ ...cur, [qid]: [] }));
-  }, [readOnly]);
+  const reattemptQuestion = useCallback(
+    (qid: string) => {
+      if (readOnly) return;
+      setSelected((cur) => ({ ...cur, [qid]: undefined }));
+      setStatus((cur) => ({ ...cur, [qid]: "unanswered" }));
+      setEliminated((cur) => ({ ...cur, [qid]: [] }));
+    },
+    [readOnly],
+  );
 
   const reattemptPaper = useCallback(() => {
     if (readOnly) return;
@@ -423,59 +482,77 @@ export function PaperSessionProvider({
   }, [questions, status, selected, correctFor]);
 
   /* ---------------- Timers ---------------- */
-  const addTimer = useCallback((durationSec = 45 * 60, name?: string) => {
-    if (readOnly) return;
-    setTimers((cur) => [
-      ...cur,
-      {
-        id: newId(),
-        name: name ?? `Timer ${cur.length + 1}`,
-        durationSec,
-        remainingSec: durationSec,
-        running: false,
-        warned: false,
-        expired: false,
-      },
-    ]);
-  }, [readOnly]);
-  const removeTimer = useCallback((id: string) => {
-    if (readOnly) return;
-    setTimers((cur) => cur.filter((t) => t.id !== id));
-  }, [readOnly]);
-  const updateTimer = useCallback((id: string, patch: Partial<TimerCfg>) => {
-    if (readOnly) return;
-    setTimers((cur) =>
-      cur.map((t) => {
-        if (t.id !== id) return t;
-        const next = { ...t, ...patch };
-        // If duration changed, clamp remaining
-        if (patch.durationSec !== undefined && patch.remainingSec === undefined) {
-          next.remainingSec = patch.durationSec;
-          next.warned = false;
-          next.expired = false;
-        }
-        return next;
-      }),
-    );
-  }, [readOnly]);
-  const pauseResumeTimer = useCallback((id: string) => {
-    if (readOnly) return;
-    setTimers((cur) => cur.map((t) => (t.id === id ? { ...t, running: !t.running } : t)));
-  }, [readOnly]);
-  const restartTimer = useCallback((id: string) => {
-    if (readOnly) return;
-    setTimers((cur) =>
-      cur.map((t) =>
-        t.id === id
-          ? { ...t, remainingSec: t.durationSec, warned: false, expired: false, running: true }
-          : t,
-      ),
-    );
-  }, [readOnly]);
-  const renameTimer = useCallback((id: string, name: string) => {
-    if (readOnly) return;
-    setTimers((cur) => cur.map((t) => (t.id === id ? { ...t, name } : t)));
-  }, [readOnly]);
+  const addTimer = useCallback(
+    (durationSec = 45 * 60, name?: string) => {
+      if (readOnly) return;
+      setTimers((cur) => [
+        ...cur,
+        {
+          id: newId(),
+          name: name ?? `Timer ${cur.length + 1}`,
+          durationSec,
+          remainingSec: durationSec,
+          running: false,
+          warned: false,
+          expired: false,
+        },
+      ]);
+    },
+    [readOnly],
+  );
+  const removeTimer = useCallback(
+    (id: string) => {
+      if (readOnly) return;
+      setTimers((cur) => cur.filter((t) => t.id !== id));
+    },
+    [readOnly],
+  );
+  const updateTimer = useCallback(
+    (id: string, patch: Partial<TimerCfg>) => {
+      if (readOnly) return;
+      setTimers((cur) =>
+        cur.map((t) => {
+          if (t.id !== id) return t;
+          const next = { ...t, ...patch };
+          // If duration changed, clamp remaining
+          if (patch.durationSec !== undefined && patch.remainingSec === undefined) {
+            next.remainingSec = patch.durationSec;
+            next.warned = false;
+            next.expired = false;
+          }
+          return next;
+        }),
+      );
+    },
+    [readOnly],
+  );
+  const pauseResumeTimer = useCallback(
+    (id: string) => {
+      if (readOnly) return;
+      setTimers((cur) => cur.map((t) => (t.id === id ? { ...t, running: !t.running } : t)));
+    },
+    [readOnly],
+  );
+  const restartTimer = useCallback(
+    (id: string) => {
+      if (readOnly) return;
+      setTimers((cur) =>
+        cur.map((t) =>
+          t.id === id
+            ? { ...t, remainingSec: t.durationSec, warned: false, expired: false, running: true }
+            : t,
+        ),
+      );
+    },
+    [readOnly],
+  );
+  const renameTimer = useCallback(
+    (id: string, name: string) => {
+      if (readOnly) return;
+      setTimers((cur) => cur.map((t) => (t.id === id ? { ...t, name } : t)));
+    },
+    [readOnly],
+  );
 
   const startStopwatch = useCallback(() => {
     if (readOnly) return;
@@ -513,7 +590,7 @@ export function PaperSessionProvider({
     questions,
     readOnly: !!readOnly,
     settings,
-    setSettings,
+    setSettings: updateSettings,
     selected,
     status,
     eliminated,

@@ -22,9 +22,7 @@ import {
   type Paper,
 } from "@/data/paperData";
 import { type Question } from "@/data/questionData";
-import { getPaperQuestions } from "@/data/paperQuestions";
 import { getMergedPaperById, getMergedQuestionsForPaper } from "@/admin/merge";
-import { createApiClient } from "@/lib/apiClient";
 import { QuestionView } from "@/components/papers/QuestionView";
 import { PaperSessionProvider, usePaperSession } from "@/components/papers/PaperSession";
 import { PaperSettingsButton } from "@/components/papers/PaperSettingsButton";
@@ -39,50 +37,88 @@ import { PaperLoadingScreen } from "@/components/papers/PaperLoadingScreen";
 import { ResumePaperModal } from "@/components/papers/ResumePaperModal";
 import { cn } from "@/lib/utils";
 
+function mapRemotePaperRow(raw: Record<string, unknown>): Paper | null {
+  const r = raw as any;
+  const parsed = parsePaperId(r.id as string);
+  if (!parsed) return null;
+  return {
+    id: r.id as string,
+    subject: parsed.subject,
+    year: parsed.year,
+    session: parsed.session,
+    variant: parsed.variant,
+    title: (r.title as string) ?? `${parsed.year} ${parsed.session} ${parsed.variant}`,
+    locked: (r.locked as boolean) ?? false,
+    difficulty: (r.difficulty as string) ?? undefined,
+    priority: (r.priority as string) ?? undefined,
+    gradeThresholds:
+      (r.grade_thresholds as unknown as Paper["gradeThresholds"]) ??
+      (r.gradeThresholds as Paper["gradeThresholds"]) ??
+      [],
+    tags: (r.tags as string[]) ?? [],
+    topics: (r.topics as string[]) ?? [],
+    lessons: (r.lessons as string[]) ?? [],
+    skills: (r.skills as string[]) ?? [],
+    questionIds: (r.questionIds as string[]) ?? [],
+    bentoSize: (r.bento_size as "sm" | "md" | "lg") ?? (r.bentoSize as "sm" | "md" | "lg") ?? "md",
+    qpLink: (r.qp_link as string) ?? (r.qpLink as string) ?? undefined,
+    msLink: (r.ms_link as string) ?? (r.msLink as string) ?? undefined,
+    gtLink: (r.gt_link as string) ?? (r.gtLink as string) ?? undefined,
+  } as Paper;
+}
+
+async function fetchRemotePaper(
+  paperId: string,
+): Promise<{ paper: Paper | null; questions: Question[] }> {
+  if (typeof window === "undefined") {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [paperRes, questionsRes] = await Promise.all([
+      supabaseAdmin.from("papers").select("*").eq("id", paperId).maybeSingle(),
+      supabaseAdmin.from("questions").select("*").eq("paper_id", paperId).order("position"),
+    ]);
+    const paper = paperRes.data ? mapRemotePaperRow(paperRes.data) : null;
+    const questions = (questionsRes.data ?? []).map((r: any, i: number) => ({
+      ...(r.payload as object),
+      id: r.id,
+      number: String(i + 1),
+    })) as Question[];
+    return { paper, questions };
+  }
+
+  const res = await fetch(`/api/papers/${encodeURIComponent(paperId)}`);
+  if (!res.ok) return { paper: null, questions: [] };
+  const json = (await res.json()) as {
+    paper: Record<string, unknown> | null;
+    questions?: Array<Record<string, unknown>>;
+  };
+  return {
+    paper: json.paper ? mapRemotePaperRow(json.paper) : null,
+    questions: (json.questions ?? []).map((q, i) => ({
+      ...(q as unknown as Question),
+      number: String(i + 1),
+    })),
+  };
+}
+
 export const Route = createFileRoute("/smart-solve-papers_/$paperId")({
   loader: async ({ params }) => {
     let paper = getMergedPaperById(params.paperId) ?? getPaperById(params.paperId);
+    let questions: Question[] = [];
 
-    // If not found in local/merged data, fetch from API
-    // (handles direct link opens before AdminStoreHydrator finishes)
-    if (!paper) {
-      try {
-        const api = createApiClient();
-        const overrides = await api.getPapersOverrides();
-        const remotePaper = overrides.papers.find((p) => p.id === params.paperId);
-        if (remotePaper) {
-          // Construct a minimal Paper object from remote data
-          const parsed = parsePaperId(params.paperId);
-          if (parsed) {
-            paper = {
-              id: params.paperId,
-              subject: parsed.subject,
-              year: parsed.year,
-              session: parsed.session,
-              variant: parsed.variant,
-              title:
-                (remotePaper.title as string) ??
-                `${parsed.year} ${parsed.session} ${parsed.variant}`,
-              locked: (remotePaper.locked as boolean) ?? false,
-              difficulty: (remotePaper.difficulty as string) ?? undefined,
-              priority: (remotePaper.priority as string) ?? undefined,
-              gradeThresholds: ((remotePaper.grade_thresholds ?? []) as any[]) ?? [],
-              tags: ((remotePaper.tags ?? []) as string[]) ?? [],
-              topics: ((remotePaper.topics ?? []) as string[]) ?? [],
-              lessons: ((remotePaper.lessons ?? []) as string[]) ?? [],
-              skills: ((remotePaper.skills ?? []) as string[]) ?? [],
-              questionIds: [],
-              bentoSize: (remotePaper.bento_size as "sm" | "md" | "lg") ?? "md",
-            } as Paper;
-          }
-        }
-      } catch {
-        // Silently fail - will still throw notFound() below if no paper found
-      }
+    try {
+      const remote = await fetchRemotePaper(params.paperId);
+      if (remote.paper) paper = remote.paper;
+      if (remote.questions.length > 0) questions = remote.questions;
+    } catch {
+      // If remote fetch fails, keep using local/merged paper if available.
     }
 
     if (!paper) throw notFound();
-    return { paper, questions: getMergedQuestionsForPaper(params.paperId) };
+    if (questions.length === 0) {
+      questions = getMergedQuestionsForPaper(params.paperId);
+    }
+
+    return { paper, questions };
   },
   // Only show the tic-tac-toe loader if loading actually takes a moment.
   pendingMs: 150,

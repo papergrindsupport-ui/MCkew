@@ -292,7 +292,7 @@
     "category": "page-open",
     "position": "bottom-right",
     "size": "medium",
-    "duration": 2000,
+    "duration": 2600,
     "weight": 2,
     "loop": "playonce"
   },
@@ -551,6 +551,7 @@
     "loop": "playonce"
   },
   {
+
     "src": "/gifs/wrongh.gif",
     "category": "wrong",
     "position": "bottom-right",

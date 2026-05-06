@@ -54,14 +54,40 @@ function markStateFor(
 function LetterBadge({
   letter,
   selected,
+  highlight,
   size = "md",
 }: {
   letter: OptionLetter;
   selected: boolean;
+  highlight?: "green" | "red" | "amber" | null;
   size?: "sm" | "md" | "lg";
 }) {
   const dim =
     size === "sm" ? "w-7 h-7 text-sm" : size === "lg" ? "w-11 h-11 text-lg" : "w-9 h-9 text-base";
+  const fillClass = selected
+    ? highlight === "green"
+      ? "bg-emerald-500 shadow-md"
+      : highlight === "red"
+        ? "bg-red-500 shadow-md"
+        : highlight === "amber"
+          ? "bg-amber-500 shadow-md"
+          : "bg-primary shadow-md"
+    : "bg-transparent";
+  const ringClass = highlight
+    ? highlight === "green"
+      ? "border-emerald-500/80"
+      : highlight === "red"
+        ? "border-red-500/80"
+        : "border-amber-500/80"
+    : selected
+      ? "border-primary"
+      : "border-border/60 group-hover:border-primary/50";
+  const textClass = selected
+    ? highlight
+      ? "text-white"
+      : "text-primary-foreground"
+    : "text-foreground";
+
   return (
     <span className={cn("relative inline-flex items-center justify-center shrink-0", dim)}>
       {/* Animated fill that grows from center when selected */}
@@ -72,23 +98,17 @@ function LetterBadge({
           opacity: selected ? 1 : 0,
         }}
         transition={{ type: "spring", stiffness: 380, damping: 22 }}
-        className="absolute inset-0 rounded-full bg-primary shadow-md"
+        className={cn("absolute inset-0 rounded-full", fillClass)}
       />
       {/* Static border ring */}
-      <span
-        className={cn(
-          "absolute inset-0 rounded-full border-2 transition-colors",
-          selected ? "border-primary" : "border-border/60 group-hover:border-primary/50",
-        )}
-      />
-      {/* Letter — animates color, never replaced by an icon */}
+      <span className={cn("absolute inset-0 rounded-full border-2 transition-colors", ringClass)} />
+      {/* Letter — animates scale, never replaced by an icon */}
       <motion.span
         animate={{
-          color: selected ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
           scale: selected ? [1, 1.25, 1] : 1,
         }}
         transition={{ duration: 0.35 }}
-        className="relative font-extrabold"
+        className={cn("relative font-extrabold", textClass)}
       >
         {letter}
       </motion.span>
@@ -220,7 +240,11 @@ function TextOptionsView({
             )}
           >
             <EliminatorBtn letter={o.letter} />
-            <LetterBadge letter={o.letter} selected={isSel} />
+            <LetterBadge
+              letter={o.letter}
+              selected={isSel}
+              highlight={ctx?.highlightFor(o.letter)}
+            />
             <div className="min-w-0 flex-1 pt-0.5 pr-1">
               <div className={cn("text-sm sm:text-base", isSel && "font-medium")}>
                 <RichTextInline rich={o.content} />
@@ -279,7 +303,12 @@ function ImageOptionsView({
           >
             <div className="flex items-center gap-2 pr-1">
               <EliminatorBtn letter={o.letter} />
-              <LetterBadge letter={o.letter} selected={isSel} size="sm" />
+              <LetterBadge
+                letter={o.letter}
+                selected={isSel}
+                size="sm"
+                highlight={ctx?.highlightFor(o.letter)}
+              />
               <span className="text-xs font-bold text-muted-foreground">{o.letter}</span>
               {
                 <TagChips
@@ -358,7 +387,12 @@ function GraphOptionsView({
           >
             <div className="flex items-center gap-2 px-1 pt-0.5">
               <EliminatorBtn letter={o.letter} />
-              <LetterBadge letter={o.letter} selected={isSel} size="sm" />
+              <LetterBadge
+                letter={o.letter}
+                selected={isSel}
+                size="sm"
+                highlight={ctx?.highlightFor(o.letter)}
+              />
               <span className="text-xs font-bold text-muted-foreground">{o.letter}</span>
               {
                 <TagChips
@@ -444,7 +478,12 @@ function TableWithSelection({
                   >
                     {lf ? (
                       <span className="inline-flex items-center justify-center">
-                        <LetterBadge letter={lf.letter} selected={lf.selected} size="sm" />
+                        <LetterBadge
+                          letter={lf.letter}
+                          selected={lf.selected}
+                          size="sm"
+                          highlight={mc ?? null}
+                        />
                       </span>
                     ) : (
                       <RichTextInline rich={cell.content} />
@@ -661,7 +700,12 @@ function ImagePositionedView({
                       : "bg-background/90 text-foreground border-border/60 hover:border-primary/50",
                 )}
               >
-                <LetterBadge letter={o.letter} selected={isSel} size="sm" />
+                <LetterBadge
+                  letter={o.letter}
+                  selected={isSel}
+                  size="sm"
+                  highlight={ctx?.highlightFor(o.letter)}
+                />
                 {o.label && (
                   <span className="text-xs font-bold whitespace-nowrap">
                     <RichTextInline rich={o.label} />

@@ -19,6 +19,7 @@ export function ResumePaperModal() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (session.settings.submissionMode !== "end-of-paper") return;
     const submitted = hasSubmittedPaper(session.paperId);
     const attempted = hasAttemptedPaper(session.paperId);
     if (submitted) {
@@ -28,9 +29,12 @@ export function ResumePaperModal() {
       setMode("attempted");
       setOpen(true);
     }
-    // Only on first mount per paper page open.
+    // Only run on the first mount of this component.
+    // Mode changes later should not reopen the resume modal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (session.settings.submissionMode !== "end-of-paper") return null;
 
   const onRestart = () => {
     session.reattemptPaper();

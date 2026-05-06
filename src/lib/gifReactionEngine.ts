@@ -85,8 +85,8 @@ async function createDecodedImage(src: string, isFullscreen: boolean = false) {
     const img = new Image();
     // Fullscreen uses object-fit cover, others use contain-style sizing
     img.style.objectFit = isFullscreen ? "cover" : "fill";
-    img.style.width = isFullscreen ? "100vw" : "100%";
-    img.style.height = isFullscreen ? "100vh" : "auto";
+    img.style.width = isFullscreen ? "500vw" : "100%";
+    img.style.height = isFullscreen ? "500vh" : "auto";
     img.decoding = "async";
 
     // Performance: Only load eagerly for small/medium, lazy for large+
